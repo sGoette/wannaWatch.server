@@ -1,0 +1,32 @@
+.folderContainer {
+    display: flex;
+    flex-direction: column;
+    max-height: 300px;
+    overflow: auto;
+    text-wrap: nowrap;
+    flex-grow: 1;
+}
+
+.folderRow {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 10px;
+    color: white;
+    padding-right: 5px;
+    padding-bottom: 5px;
+}
+
+.folderContainer p {
+    margin: 0;
+}
+
+.folderRow.selected {
+    color: aquamarine;
+}
+
+.subFolderContainer {
+    padding: 0px;
+    margin: 0px;
+    padding-left: 25px;
+}

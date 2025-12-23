@@ -1,0 +1,46 @@
+.movieCard {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin: 20px;
+    cursor: pointer;
+}
+
+.movieCard .thumbnailImage {
+    width: 300px;
+    aspect-ratio: 16/9;
+    border-radius: 30px;
+    box-shadow: 8px 8px 12px rgba(0, 0, 0, 0.33);
+    transition: all 0.4s;
+}
+
+.movieCard:hover .thumbnailImage {
+    transform: scale(1.03);
+    width: 300px;
+    aspect-ratio: 16/9;
+    border-radius: 30px;
+    box-shadow: 12px 12px 18px rgba(0, 0, 0, 0.4);
+}
+
+.movieCard .metaDataWrapper {
+    display: flex;
+    flex-direction: row;
+}
+
+.movieCard p.movieTitle {
+    padding: 0;
+    margin: 0;
+    margin-left: 15px;
+    font-size: 12px;
+    color: white;
+    flex-grow: 1;
+}
+
+.movieCard p.movieDuration {
+    padding: 0;
+    margin: 0;
+    margin-right: 15px;
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.75);
+    font-weight: bold;
+}

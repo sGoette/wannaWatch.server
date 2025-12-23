@@ -1,0 +1,51 @@
+.modifyLibraryWrapper {
+    position: fixed;
+    top: 0px;
+    left: 0px;
+    right: 0px;
+    bottom: 0px;
+    background-color: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(10px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 20;
+}
+
+.modifyLibraryBox {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    background-color: black;
+    padding: 40px;
+    padding-top: 44px;
+    border-radius: 20px;
+    border: rgba(255, 255, 255, 0.2) solid 1px;
+}
+
+.inputList {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.folderSelectWrapper {
+    display: flex;
+    flex-direction: row;
+    gap: 20px;
+    align-items: center;
+    border: rgba(255, 255, 255, 0.2) solid 1px;
+    border-radius: 10px;
+    padding: 10px;
+}
+
+.closeButtonWrapper {
+    display: flex;
+    justify-content: right;
+    margin-top: -24px;
+    cursor: pointer;
+}
+
+.closeButton {
+    color: white;
+}

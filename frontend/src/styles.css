@@ -1,0 +1,54 @@
+/* src/styles.css */
+body {
+    font-family: Arial, sans-serif;
+    padding: 2rem;
+    background-color: #1a1f24;
+}
+
+.contentWrapper {
+    display: flex;
+
+}
+
+input[type=text] {
+    background-color: black;
+    outline: none;
+    border: rgba(255, 255, 255, 0.33) solid 1px;
+    border-radius: 10px;
+    padding: 10px;
+    color: white;
+    font-size: 15px;
+    min-width: 300px;
+}
+
+input[type=text]:focus {
+    border-color: aquamarine;
+}
+
+button {
+    background: rgba(128, 255, 212, 0.33);
+    outline: none;
+    border: aquamarine solid 1px;
+    border-radius: 10px;
+    padding: 10px;
+    color: white;
+    font-size: 15px;
+    transition: all 0.4s;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+button:disabled {
+    background: rgba(128, 128, 128, 0.33);
+}
+
+button:hover {
+    background: rgba(128, 255, 212, 1);
+    color: black;
+}
+
+button:disabled:hover {
+    background: rgba(128, 128, 128, 0.33);
+    color: white;
+    cursor: auto;
+}
