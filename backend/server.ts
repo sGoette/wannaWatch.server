@@ -12,7 +12,7 @@ import mime from "mime-types"
 import { insertNewMovies } from "./insertNewMovies.js"
 import type { Setting } from '../types/Setting'
 
-const DATABASE_LOCATION = './data/db/database.sqlite'
+const DATABASE_LOCATION = '../../data/db/database.sqlite'
 
 const fastify = Fastify({ logger: false })
 fastify.register(websocket)
@@ -310,7 +310,7 @@ fastify.register(async () => {
     })
 })
 
-const FRONTEND_PATH = path.resolve("../frontend")
+const FRONTEND_PATH = path.resolve("./frontend")
 
 fastify.register(staticPlugin, {
     root: FRONTEND_PATH,
