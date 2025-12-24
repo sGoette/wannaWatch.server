@@ -25,7 +25,7 @@ const MovieCard = (props: {
     }
     return (
         <div className="movieCard" onClick={openPlayer}>
-            <img src={'/movie/thumbnail/' + props.movie.thumbnail_file_name} alt={props.movie.title} className='thumbnailImage' />
+            <img src={'api/movie/thumbnail/' + props.movie.thumbnail_file_name} alt={props.movie.title} className='thumbnailImage' />
             <div className='metaDataWrapper'>
                 <p className='movieTitle'>{props.movie.title}</p>
                 <p className='movieDuration'>{formatDuration(props.movie.length_in_seconds)}</p>

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react"
 import type { Library } from "../../types/Library"
-import "./ModifyLibrary.css"
+import "./Dialog.css"
 import axios from "axios"
 
 import HourglassBottomIcon from '@mui/icons-material/HourglassBottom'
@@ -13,7 +13,6 @@ export const ModifyLibrary = (props: { libraryId: number | null, setShowModifyLi
     const [ library, setLibrary ] = useState<null | Library>()
     const [ libraryName, setLibraryName ] = useState<string>("")
     const [ libraryMediaFolder, setLibraryMediaFolder ] = useState<string>("")
-    const [ showSelectFolder, setShowSelectFolder ] = useState<boolean>(false)
 
     const saveLibrary = () => {
         const newLibrary = {id: props.libraryId, name: libraryName, media_folder: libraryMediaFolder} as Library
@@ -50,10 +49,10 @@ export const ModifyLibrary = (props: { libraryId: number | null, setShowModifyLi
     }, [])
 
     return (
-        <div className="modifyLibraryWrapper">
+        <div className="dialogWrapper">
             {
                 library !== null
-                ? <div className="modifyLibraryBox">
+                ? <div className="dialogBox">
                     <div className="closeButtonWrapper">
                         <CloseIcon className="closeButton" onClick={() => { props.setShowModifyLibraryDialog(false) }} />
                     </div>

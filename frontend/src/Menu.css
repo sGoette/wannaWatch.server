@@ -1,0 +1,59 @@
+.menu {
+    background-color: rgba(0, 0, 0, 0.5);
+    border-radius: 20px;
+
+    display: flex;
+    flex-direction: column;
+    padding-left: 1rem;
+    padding-right: 1rem;
+    padding-top: 2rem;
+    padding-bottom: 1rem;
+    flex-wrap: nowrap;
+    justify-self: stretch;
+    justify-content: space-between;
+    gap: 2rem;
+}
+
+.menu .menuItems {
+    display: flex;
+    flex-direction: column;
+    flex-wrap: nowrap;
+    justify-self: stretch;
+    gap: 2rem;
+}
+
+.menu .libraryMenuItem {
+    color: white;
+    padding: 0;
+    margin: 0;
+    text-wrap: nowrap;
+    cursor: pointer;
+    display: flex;
+    gap: 2rem;
+    justify-content: space-between;
+}
+
+.menu .libraryMenuItem.selected .libraryName {
+    color: aquamarine;
+}
+
+.menu .libraryMenuItem .editIcon {
+    opacity: 0;
+    transition: all 0.4s;
+}
+
+.menu .libraryMenuItem:hover .editIcon {
+    opacity: 0.5;
+}
+
+.menu .libraryMenuItem .editIcon:hover {
+    opacity: 1;
+}
+
+.menu .buttons {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    padding: 0;
+    margin: 0;
+}

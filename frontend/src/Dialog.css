@@ -1,4 +1,4 @@
-.modifyLibraryWrapper {
+.dialogWrapper {
     position: fixed;
     top: 0px;
     left: 0px;
@@ -12,7 +12,7 @@
     z-index: 20;
 }
 
-.modifyLibraryBox {
+.dialogBox {
     display: flex;
     flex-direction: column;
     gap: 20px;
@@ -48,4 +48,13 @@
 
 .closeButton {
     color: white;
+}
+
+.dialogButtonWrapper {
+    display: flex;
+    gap: 2rem;
+}
+
+.dialogButtonWrapper button {
+    flex-grow: 1;
 }

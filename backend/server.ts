@@ -1,5 +1,6 @@
 import Fastify from "fastify"
 import websocket from "@fastify/websocket"
+import staticPlugin from '@fastify/static'
 import type { WebSocket } from "@fastify/websocket"
 import { DatabaseSync } from 'node:sqlite'
 import { existsSync, statSync, createReadStream } from 'fs'
@@ -9,10 +10,11 @@ import initDatabase from "./initDatabase.js"
 import path from "path"
 import mime from "mime-types"
 import { insertNewMovies } from "./insertNewMovies.js"
+import type { Setting } from '../types/Setting'
 
 const DATABASE_LOCATION = './data/database.sqlite'
 
-const fastify = Fastify({ logger: true })
+const fastify = Fastify({ logger: false })
 fastify.register(websocket)
 const clients = new Set<WebSocket>()
 
@@ -37,8 +39,8 @@ const getSettingValueFor = (key: string, database: DatabaseSync): string => {
     return result.value
 }
 
-const MOVIE_LOCATION = getSettingValueFor('MOVIE_LOCATION', database)
-const MOVIE_THUMBNAIL_LOCATION = getSettingValueFor('MOVIE_THUMBNAIL_LOCATION', database)
+var MOVIE_LOCATION = getSettingValueFor('MOVIE_LOCATION', database)
+var MOVIE_THUMBNAIL_LOCATION = getSettingValueFor('MOVIE_THUMBNAIL_LOCATION', database)
 
 fastify.get('/api/fs/list', async (request, reply) => {
     const { path: requestedPath } = request.query as { path?: string }
@@ -46,8 +48,6 @@ fastify.get('/api/fs/list', async (request, reply) => {
     const resolvedPath = requestedPath
         ? path.resolve(MOVIE_LOCATION, requestedPath)
         : MOVIE_LOCATION
-
-        console.log(resolvedPath)
 
     // Security: prevent escaping base path
     if (!resolvedPath.startsWith(MOVIE_LOCATION)) {
@@ -130,8 +130,7 @@ fastify.put('/api/library', async (request, reply) => {
         INSERT INTO libraries
         (name, media_folder)
         VALUES (?, ?)
-    `)
-    insertLibrary.run(library.name, library.media_folder)
+    `).run(library.name, library.media_folder)
     database.close()
     sendMessageToClients("libraries-updated")
 
@@ -169,7 +168,6 @@ fastify.get('/api/movie/thumbnail/:filename', async (request, reply) => {
     }
 
     const filePath = path.join(MOVIE_THUMBNAIL_LOCATION, filename)
-    console.log(filePath)
 
     try {
         const data = await readFile(filePath)
@@ -194,8 +192,7 @@ fastify.get('/api/movie/:movieId', async (request, reply) => {
     const { movieId } = request.params as { movieId: number }
 
     database.open()
-    const getMovie = database.prepare(`SELECT * FROM movies WHERE id = ?`)
-    const movie = getMovie.get(movieId)
+    const movie = database.prepare(`SELECT * FROM movies WHERE id = ?`).get(movieId)
     database.close()
     reply.type('application/json').code(200)
     return movie
@@ -268,10 +265,68 @@ fastify.get("/api/movie/stream/:movieId", async (request, reply) => {
     return reply
 })
 
+fastify.get("/api/settings", async (request, reply) => {
+    database.open()
+    const settings = database.prepare('SELECT * FROM settings ORDER BY key ASC').all() as Setting[]
+    database.close()
+
+    reply.type('application/json').code(200)
+    return settings
+})
+
+fastify.post("/api/settings", async (request, reply) => {
+    if (!request.body) {
+        reply.code(400).send('Missinb Body')
+        return
+    }
+
+    const settings = request.body as Setting[]
+
+    database.open()
+    settings.forEach(setting => {
+        database.prepare('UPDATE settings SET value = ? WHERE key = ?').run(setting.value, setting.key)
+    })
+    database.close()
+
+    const newMovieLocation = settings.find(setting => setting.key === 'MOVIE_LOCATION')?.value
+    if(newMovieLocation !== undefined) {
+        MOVIE_LOCATION = newMovieLocation
+    }
+
+    const newMovieThumbnailLocation = settings.find(setting => setting.key === 'MOVIE_THUMBNAIL_LOCATION')?.value
+    if(newMovieThumbnailLocation !== undefined) {
+        MOVIE_THUMBNAIL_LOCATION = newMovieThumbnailLocation
+    }
+    
+})
+
+fastify.get("/api/health", async () => {
+  return { status: "ok" }
+})
+
 fastify.register(async () => {
     fastify.get("/ws", { websocket: true }, (socket, request) => {
         clients.add(socket)
     })
+})
+
+const FRONTEND_PATH = path.resolve("../frontend")
+
+fastify.register(staticPlugin, {
+    root: FRONTEND_PATH,
+    prefix: "/"
+})
+
+fastify.setNotFoundHandler((request, reply) => {
+    const indexFile = path.join(FRONTEND_PATH, "index.html")
+
+    if (existsSync(indexFile)) {
+        reply.type("text/html").send(
+            createReadStream(indexFile)
+        )
+    } else {
+        reply.code(404).send("Not found")
+    }
 })
 
 fastify.listen({ port: 4000 }, (err, address) => {

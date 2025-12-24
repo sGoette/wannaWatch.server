@@ -1,4 +1,4 @@
-import React, { useState } from "react"
+import React, { useEffect, useState } from "react"
 import FolderIcon from '@mui/icons-material/Folder'
 import FolderOpenIcon from '@mui/icons-material/FolderOpen'
 
@@ -8,10 +8,15 @@ import axios from "axios"
 
 export const Folder = (props: { name: string, path: string, libraryMediaFolder: string, setLibraryMediaFolder: (arg0: string) => void }) => {
     const [ subFolders, setSubFolders ] = useState<FolderEntry[]>([])
+    
     const setCurrentFolder = () => {
         props.setLibraryMediaFolder(props.path)
+        fetchSubFolders()
+    }
 
+    const fetchSubFolders = () => {
         const params = { path: props.path }
+
         axios.get('/api/fs/list', { params })
         .then(response => {
             if(response.status === 200) {
@@ -19,6 +24,12 @@ export const Folder = (props: { name: string, path: string, libraryMediaFolder: 
             }
         })
     }
+
+    useEffect(() => {
+        if(props.libraryMediaFolder.includes(props.path)) {
+            fetchSubFolders()
+        }
+    }, [])
     return (
         <div className="folderContainer">
             <div className={`folderRow${props.path === props.libraryMediaFolder ? ' selected' : ""}`} onClick={setCurrentFolder}>

@@ -6,7 +6,7 @@ const exports = {
   entry: "./src/index.tsx",
   output: {
     filename: "[name].[contenthash].js",
-    path: path.resolve("./dist/frontend"),
+    path: path.resolve("../dist/frontend"),
     publicPath: "/",
     clean: true
   },

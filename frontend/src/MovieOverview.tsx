@@ -3,19 +3,15 @@ import type { Movie } from "../../types/Movie"
 import axios from "axios"
 import MovieCard from "./MovieCard"
 import type { Library } from "../../types/Library"
-import { ModifyLibrary } from "./ModifyLibrary"
 import './MovieOverview.css'
 
-import EditIcon from '@mui/icons-material/Edit'
-import AddIcon from '@mui/icons-material/Add'
-import { Margin } from "@mui/icons-material"
+
+import { Menu } from "./Menu"
 
 export const MovieOverview = () => {
     const [ libraries, setLibraries ] = useState<Library[]>([])
     const [ currentLibraryId, setCurrentLibraryId ] = useState<number | null>(null)
     const [ movies, setMovies ] = useState<Movie[]>([])
-    const [ editingLibrayId, setEditingLibraryId ] = useState<null | number>(null)
-    const [ showModifyLibraryDialog, setShowModifyLibraryDialog ] = useState<boolean>(false)
 
     const socket = new WebSocket("/api/ws")
 
@@ -65,25 +61,7 @@ export const MovieOverview = () => {
     return (
         <>
             <div className="contentWrapper">
-                <div className="header">
-                    {
-                        libraries.map(library => {
-                            return (
-                                <p className={`libraryMenuItem${library.id === currentLibraryId ? " selected" : ""}`} key={library.id} onClick={() => {currentLibraryId !== library.id ? setCurrentLibraryId(library.id) : null}}>
-                                    <span className="libraryName">{library.name}</span>
-                                    <EditIcon className="editIcon" onClick={() => {
-                                        setEditingLibraryId(library.id)
-                                        setShowModifyLibraryDialog(true)
-                                    }} />
-                                </p>
-                            )
-                        })
-                    }
-                    <AddIcon className="addIcon" onClick={() => {
-                        setEditingLibraryId(null)
-                        setShowModifyLibraryDialog(true)
-                    }} style={{marginLeft: '20px'}} />
-                </div>
+                <Menu libraries={libraries} currentLibraryId={currentLibraryId} setCurrentLibraryId={setCurrentLibraryId} />
                 <div className="movieOverview">
                     {
                         movies.map(movie => {
@@ -94,11 +72,6 @@ export const MovieOverview = () => {
                     }
                 </div>
             </div>
-            {
-                showModifyLibraryDialog === true 
-                    ? <ModifyLibrary libraryId={editingLibrayId} setShowModifyLibraryDialog={setShowModifyLibraryDialog} />
-                    : null
-            }
         </>
     )
 }
