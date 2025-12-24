@@ -3,7 +3,7 @@ import websocket from "@fastify/websocket"
 import staticPlugin from '@fastify/static'
 import type { WebSocket } from "@fastify/websocket"
 import { DatabaseSync } from 'node:sqlite'
-import { existsSync, statSync, createReadStream } from 'fs'
+import { existsSync, statSync, createReadStream, readdirSync } from 'fs'
 import { readdir, readFile } from 'fs/promises'
 import type { Library } from "../types/Library"
 import initDatabase from "./initDatabase.js"
@@ -14,7 +14,7 @@ import type { Setting } from '../types/Setting'
 
 const DATABASE_LOCATION = '../../../data/db/database.sqlite'
 
-console.log(readdir("./", { withFileTypes: true }))
+console.log(readdirSync("./", { withFileTypes: true }))
 
 const fastify = Fastify({ logger: false })
 fastify.register(websocket)
