@@ -29,7 +29,7 @@ pw useradd wannawatchserver -m -s /usr/sbin/nologin
 chown -R wannawatchserver:wannawatchserver wannawatch.server
 
 #Download version from github
-cd wannawatch.server/releases
+cd /usr/local/wannawatch.server/releases
 fetch https://github.com/sGoette/wannaWatch.server/releases/download/v0.1.0/wannawatchserver-v0.1.0.tar.gz
 tar -xzf wannawatchserver-v0.1.0.tar.gz
 
@@ -37,4 +37,14 @@ tar -xzf wannawatchserver-v0.1.0.tar.gz
 ln -sfn /usr/local/wannawatch.server/releases/v0.1.0 /usr/local/wannawatch.server/current
 chown -h wannawatchserver:wannawatchserver /usr/local/wannawatch.server/current
 
+#run by hand
 su -m wannawatchserver -c "node /usr/local/wannawatch.server/current/backend/server.js"
+
+
+#update
+cd /usr/local/wannawatch.server/releases
+fetch https://github.com/sGoette/wannaWatch.server/releases/download/v0.1.1/wannawatchserver-v0.1.1.tar.gz
+tar -xzf wannawatchserver-v0.1.1.tar.gz
+
+ln -sfn /usr/local/wannawatch.server/releases/v0.1.1 /usr/local/wannawatch.server/current
+chown -h wannawatchserver:wannawatchserver /usr/local/wannawatch.server/current
