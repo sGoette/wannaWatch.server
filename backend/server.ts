@@ -14,6 +14,8 @@ import type { Setting } from '../types/Setting'
 
 const DATABASE_LOCATION = './data/database.sqlite'
 
+console.log(path.resolve("./"))
+
 const fastify = Fastify({ logger: false })
 fastify.register(websocket)
 const clients = new Set<WebSocket>()
