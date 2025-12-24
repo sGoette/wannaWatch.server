@@ -57,7 +57,7 @@ const exports = {
     proxy: [
       {
         context: ["/api"],
-        target: "http://localhost:80"
+        target: "http://localhost:4000"
       }
     ]
   },

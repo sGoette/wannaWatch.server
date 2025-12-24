@@ -12,7 +12,7 @@ import mime from "mime-types"
 import { insertNewMovies } from "./insertNewMovies.js"
 import type { Setting } from '../types/Setting'
 
-const DATABASE_LOCATION = '../data/db/database.sqlite'
+const DATABASE_LOCATION = './data/db/database.sqlite'
 
 const fastify = Fastify({ logger: false })
 fastify.register(websocket)
@@ -329,6 +329,6 @@ fastify.setNotFoundHandler((request, reply) => {
     }
 })
 
-fastify.listen({ port: 80, host: "0.0.0.0" }, (err, address) => {
+fastify.listen({ port: 4000, host: "0.0.0.0" }, (err, address) => {
     if (err) throw err
 })

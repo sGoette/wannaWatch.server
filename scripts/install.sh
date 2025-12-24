@@ -44,7 +44,7 @@ su -m wannawatchserver -c "node /usr/local/wannawatch.server/current/backend/ser
 
 #update
 cd /usr/local/wannawatch.server/releases
-fetch https://github.com/sGoette/wannaWatch.server/releases/download/v0.1.6/wannawatchserver-v0.1.6.tar.gz
-tar -xzf wannawatchserver-v0.1.6.tar.gz
-ln -sfn /usr/local/wannawatch.server/releases/v0.1.6 /usr/local/wannawatch.server/current
+fetch https://github.com/sGoette/wannaWatch.server/releases/download/v0.1.7/wannawatchserver-v0.1.7.tar.gz
+tar -xzf wannawatchserver-v0.1.7.tar.gz
+ln -sfn /usr/local/wannawatch.server/releases/v0.1.7 /usr/local/wannawatch.server/current
 chown -h wannawatchserver:wannawatchserver /usr/local/wannawatch.server/current
