@@ -21,7 +21,7 @@ mkdir "$RELEASE_DIR"
 
 cp -r dist/* "$RELEASE_DIR/"
 
-tar -czf "$ARCHIVE_NAME" "$RELEASE_DIR"
+tar -czf build/"$ARCHIVE_NAME" "$RELEASE_DIR"
 
 rm -rf "$RELEASE_DIR"
 
