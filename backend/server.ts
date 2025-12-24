@@ -3,7 +3,7 @@ import websocket from "@fastify/websocket"
 import staticPlugin from '@fastify/static'
 import type { WebSocket } from "@fastify/websocket"
 import { DatabaseSync } from 'node:sqlite'
-import { existsSync, statSync, createReadStream, readdirSync } from 'fs'
+import { existsSync, statSync, createReadStream } from 'fs'
 import { readdir, readFile } from 'fs/promises'
 import type { Library } from "../types/Library"
 import initDatabase from "./initDatabase.js"
@@ -12,9 +12,7 @@ import mime from "mime-types"
 import { insertNewMovies } from "./insertNewMovies.js"
 import type { Setting } from '../types/Setting'
 
-const DATABASE_LOCATION = '../../../data/db/database.sqlite'
-
-console.log(readdirSync("./", { withFileTypes: true }))
+const DATABASE_LOCATION = '../data/db/database.sqlite'
 
 const fastify = Fastify({ logger: false })
 fastify.register(websocket)
@@ -331,6 +329,6 @@ fastify.setNotFoundHandler((request, reply) => {
     }
 })
 
-fastify.listen({ port: 4000, host: "0.0.0.0" }, (err, address) => {
+fastify.listen({ port: 80, host: "0.0.0.0" }, (err, address) => {
     if (err) throw err
 })

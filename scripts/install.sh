@@ -38,12 +38,13 @@ ln -sfn /usr/local/wannawatch.server/releases/v0.1.0 /usr/local/wannawatch.serve
 chown -h wannawatchserver:wannawatchserver /usr/local/wannawatch.server/current
 
 #run by hand
+cd /usr/local/wannawatch.server/current
 su -m wannawatchserver -c "node /usr/local/wannawatch.server/current/backend/server.js"
 
 
 #update
 cd /usr/local/wannawatch.server/releases
-fetch https://github.com/sGoette/wannaWatch.server/releases/download/v0.1.4/wannawatchserver-v0.1.4.tar.gz
-tar -xzf wannawatchserver-v0.1.4.tar.gz
-ln -sfn /usr/local/wannawatch.server/releases/v0.1.4 /usr/local/wannawatch.server/current
+fetch https://github.com/sGoette/wannaWatch.server/releases/download/v0.1.6/wannawatchserver-v0.1.6.tar.gz
+tar -xzf wannawatchserver-v0.1.6.tar.gz
+ln -sfn /usr/local/wannawatch.server/releases/v0.1.6 /usr/local/wannawatch.server/current
 chown -h wannawatchserver:wannawatchserver /usr/local/wannawatch.server/current

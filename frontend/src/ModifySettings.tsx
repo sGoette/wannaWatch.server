@@ -8,21 +8,13 @@ import { TextInput } from "./TextInput"
 
 export const ModifySettings = (props: { setShowModifySettingsDialog: Dispatch<SetStateAction<boolean>> }) => {
     const [ settings, setSettings ] = useState<Setting[]>([])
-
-    useEffect(() => {
-        axios.get('/api/settings')
-        .then(response => {
-            if(response.status === 200) {
-                let settingsData = response.data as Setting[]
-                setSettings(settingsData)
-            }
-        })
-    }, [])
+    const [ validData, setValidData ] = useState<boolean>(false)
 
     const setSetting = (key: string, value: string) => {
         var newSettings = settings
         newSettings[newSettings.findIndex(setting => setting.key === key)]!.value = value
         setSettings(newSettings)
+        setValidData(newSettings.find(setting => setting.value === "") !== undefined)
     }
 
     const saveData = () => {
@@ -33,6 +25,18 @@ export const ModifySettings = (props: { setShowModifySettingsDialog: Dispatch<Se
             }
         })
     }
+
+    useEffect(() => {
+        axios.get('/api/settings')
+        .then(response => {
+            if(response.status === 200) {
+                let settingsData = response.data as Setting[]
+                setSettings(settingsData)
+
+                setValidData(settingsData.find(setting => setting.value === "") !== undefined)
+            }
+        })
+    }, [])
 
     return (
         <div className="dialogWrapper">
@@ -48,7 +52,7 @@ export const ModifySettings = (props: { setShowModifySettingsDialog: Dispatch<Se
                 }
                 <div className="dialogButtonWrapper">
                     <button className="destructive" onClick={() => { props.setShowModifySettingsDialog(false) }}>Cancel</button>
-                    <button className="primary" onClick={saveData} disabled={settings.find(setting => setting.value === "") !== undefined}>Save</button>
+                    <button className="primary" onClick={saveData} disabled={ validData }>Save</button>
                 </div>
                 </div>
             </div>
