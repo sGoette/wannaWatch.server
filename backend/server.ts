@@ -3,16 +3,18 @@ import websocket from "@fastify/websocket"
 import staticPlugin from '@fastify/static'
 import type { WebSocket } from "@fastify/websocket"
 import { DatabaseSync } from 'node:sqlite'
-import { existsSync, statSync, createReadStream } from 'fs'
-import { readdir, readFile } from 'fs/promises'
+import { existsSync, statSync, createReadStream, unlink, exists } from 'fs'
+import { access, constants, readdir, readFile } from 'fs/promises'
 import type { Library } from "../types/Library"
 import initDatabase from "./initDatabase.js"
 import path from "path"
 import mime from "mime-types"
 import { insertNewMovies } from "./insertNewMovies.js"
 import type { Setting } from '../types/Setting'
+import type { Movie } from "../types/Movie"
 
 const DATABASE_LOCATION = '../../data/db/database.sqlite'
+const MOVIE_THUMBNAIL_LOCATION = '../../data/thumbnails'
 
 const fastify = Fastify({ logger: false })
 fastify.register(websocket)
@@ -40,7 +42,6 @@ const getSettingValueFor = (key: string, database: DatabaseSync): string => {
 }
 
 var MOVIE_LOCATION = getSettingValueFor('MOVIE_LOCATION', database)
-var MOVIE_THUMBNAIL_LOCATION = getSettingValueFor('MOVIE_THUMBNAIL_LOCATION', database)
 
 fastify.get('/api/fs/list', async (request, reply) => {
     const { path: requestedPath } = request.query as { path?: string }
@@ -139,6 +140,33 @@ fastify.put('/api/library', async (request, reply) => {
     })
 
     reply.code(200).send("Library inserted")
+})
+
+fastify.delete('/api/library/:libraryId', async ( request, reply) => {
+    const { libraryId } = request.params as { libraryId: string }
+
+    if(!libraryId) {
+        reply.code(400).send("Library ID is missing")
+        return
+    }
+
+    database.open()
+    const movies = database.prepare('SELECT * FROM movies WHERE library_id = ?').all(libraryId) as Movie[]
+    database.close()
+
+    const thumbnailDeletionPromisses = movies.map(movie => {
+        const thumbnailPath = path.join(MOVIE_THUMBNAIL_LOCATION, movie.thumbnail_file_name)
+        return unlink(thumbnailPath, () => {})
+    })
+
+    Promise.all(thumbnailDeletionPromisses).then(() => {
+        database.open()
+        database.prepare('DELETE FROM movies WHERE library_id = ?').run(libraryId)
+        database.prepare('DELETE FROM libraries WHERE id = ?').run(libraryId)
+        database.close()
+        sendMessageToClients("libraries-updated")
+    })
+    reply.code(200).send("Started deleting library")
 })
 
 fastify.get('/api/scanDirectories', async (request, response) => {
@@ -289,15 +317,10 @@ fastify.post("/api/settings", async (request, reply) => {
     database.close()
 
     const newMovieLocation = settings.find(setting => setting.key === 'MOVIE_LOCATION')?.value
+    //DELETE ALL LIBRARIES WHEN THIS HAPPENS???
     if(newMovieLocation !== undefined) {
         MOVIE_LOCATION = newMovieLocation
     }
-
-    const newMovieThumbnailLocation = settings.find(setting => setting.key === 'MOVIE_THUMBNAIL_LOCATION')?.value
-    if(newMovieThumbnailLocation !== undefined) {
-        MOVIE_THUMBNAIL_LOCATION = newMovieThumbnailLocation
-    }
-    
 })
 
 fastify.get("/api/health", async () => {

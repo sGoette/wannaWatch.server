@@ -13,8 +13,7 @@ const initDatabase = (db: DatabaseSync) => {
         INSERT INTO settings
         ( key, value, format )
         VALUES
-        ( 'MOVIE_LOCATION', '', 'string' ),
-        ( 'MOVIE_THUMBNAIL_LOCATION', '', 'string')
+        ( 'MOVIE_LOCATION', '', 'string' )
     `)
     db.exec(`
         CREATE TABLE movies (

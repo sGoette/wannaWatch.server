@@ -34,6 +34,17 @@ export const ModifyLibrary = (props: { libraryId: number | null, setShowModifyLi
         }
     }
 
+    const deleteLibrary = () => {
+        if(props.libraryId) {
+            axios.delete(`/api/library/${props.libraryId}`)
+            .then(response => {
+                if(response.status === 200) {
+                    props.setShowModifyLibraryDialog(false)
+                }
+            })
+        }
+    }
+
     useEffect(() => {
         if(props.libraryId) {
             axios.get(`/api/library/${props.libraryId}`)
@@ -62,7 +73,15 @@ export const ModifyLibrary = (props: { libraryId: number | null, setShowModifyLi
                         <div className="folderSelectWrapper">
                             <Folder name="Root" path="" libraryMediaFolder={libraryMediaFolder} setLibraryMediaFolder={setLibraryMediaFolder} />
                         </div>
-                        <button className="primary" onClick={saveLibrary} disabled={libraryName === "" || libraryMediaFolder === ""}>Speichern</button>
+                        <div className="dialogButtonWrapper">
+                            <button className="destructive" onClick={() => { props.setShowModifyLibraryDialog(false) }}>Cancel</button>
+                            <button className="primary" onClick={saveLibrary} disabled={libraryName === "" || libraryMediaFolder === ""}>Save</button>
+                        </div>
+                        {
+                            props.libraryId
+                            ? <button className="destructive" onClick={deleteLibrary}>Delete Library</button>
+                            : null
+                        }
                     </div>
                 </div>
                 : <HourglassBottomIcon />

@@ -1,8 +1,6 @@
 .folderContainer {
     display: flex;
     flex-direction: column;
-    max-height: 300px;
-    overflow: auto;
     text-wrap: nowrap;
     flex-grow: 1;
 }

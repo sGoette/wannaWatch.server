@@ -1,0 +1,23 @@
+#!/bin/sh
+#
+# PROVIDE: wannawatch
+# REQUIRE: LOGIN
+# KEYWORD: shutdown
+
+. /etc/rc.subr
+
+set -x
+name="wannawatch"
+rcvar=wannawatch_enable
+
+start_cmd="wannawatch_start"
+
+wannawatch_start() {
+  cd /usr/local/wannawatch.server/current || exit 1
+  echo "$(date) Starting wannawatch" >> /tmp/wannawatch.log
+  daemon -u wannawatchserver /usr/local/bin/node backend/server.js >> /tmp/wannawatch.log 2>&1 &
+  echo $! /usr/local/wannawatch.server/wannawatch.pid
+}
+
+load_rc_config $name
+run_rc_command "$1"

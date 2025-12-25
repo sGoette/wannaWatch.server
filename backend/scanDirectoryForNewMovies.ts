@@ -19,9 +19,10 @@ export const scanDirectoryForNewMovies = async (folder: string, database: Databa
       } else if (entry.isFile()) {
         const ext = path.extname(entry.name).toLowerCase()
         if (VIDEO_EXTENSIONS.includes(ext)) {
+          const filePath = path.relative(MOVIE_LOCATION, fullPath)
           database.open()
           const movieExists = database.prepare(`SELECT file_location FROM movies WHERE file_location = ? AND library_id = ? LIMIT 1`)
-          const row = movieExists.get(fullPath, libraryId)
+          const row = movieExists.get(filePath, libraryId)
           database.close()
 
           if(row === undefined) {

@@ -1,24 +1,20 @@
 .movieCard {
-    display: flex;
-    flex-direction: column;
     gap: 10px;
     margin: 20px;
     cursor: pointer;
 }
 
 .movieCard .thumbnailImage {
-    width: 300px;
-    aspect-ratio: 16/9;
+    width: 200px;
+    aspect-ratio: 27/40;
     border-radius: 30px;
     box-shadow: 8px 8px 12px rgba(0, 0, 0, 0.33);
     transition: all 0.4s;
+    object-fit: cover;
 }
 
 .movieCard:hover .thumbnailImage {
     transform: scale(1.03);
-    width: 300px;
-    aspect-ratio: 16/9;
-    border-radius: 30px;
     box-shadow: 12px 12px 18px rgba(0, 0, 0, 0.4);
 }
 
