@@ -9,8 +9,10 @@ import { copyFile, readFile } from 'fs/promises'
 import crypto from 'crypto'
 import { readdir } from 'fs/promises'
 import { MOVIE_THUMBNAIL_LOCATION } from './server.js'
+import GET_MOVIE_LOCATION from './GET_MOVIE_LOCATION.js'
 
-export const generateCollectionsForMovie = async (movieId: number, database: DatabaseSync, MOVIE_LOCATION: string) => {
+export const generateCollectionsForMovie = async (movieId: number, database: DatabaseSync) => {
+    const MOVIE_LOCATION = GET_MOVIE_LOCATION()
     database.open()
     const movie = database.prepare(`SELECT * FROM movies WHERE id = ?`).get(movieId) as Movie
     const library = database.prepare(`SELECT * FROM libraries WHERE id = ?`).get(movie.library_id) as Library

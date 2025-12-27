@@ -18,7 +18,7 @@ import { generateCollectionsForMovie } from "./generateCollectionsForMovie.js"
 import { API_COLLECTIONS_GET } from "./endpoints/api.collections.js"
 import { API_COLLECTION_MOVIES } from "./endpoints/api.collection.movies.js"
 
-const DATABASE_LOCATION = '../../data/db/database.sqlite'
+export const DATABASE_LOCATION = '../../data/db/database.sqlite'
 export const MOVIE_THUMBNAIL_LOCATION = '../../data/thumbnails'
 const FRONTEND_PATH = path.resolve("./frontend")
 
@@ -29,15 +29,7 @@ const clients = new Set<WebSocket>()
 const database = new DatabaseSync(DATABASE_LOCATION, { open: false })
 initDatabase(database)
 
-const getSettingValueFor = (key: string, database: DatabaseSync): string => {
-    database.open()
-    const result = database.prepare(`SELECT value FROM settings WHERE key = ?`).get(key) as { value: string }
-    database.close()
-    return result.value
-}
-var MOVIE_LOCATION = getSettingValueFor('MOVIE_LOCATION', database) //When location is updated, is isn't passed down. Fetch from db on usage. 
-
-API_FS_LIST_GET(fastify, MOVIE_LOCATION)
+API_FS_LIST_GET(fastify)
 
 API_LIBRARIES_GET(fastify, database)
 
@@ -45,15 +37,15 @@ API_LIBRARY_GET(fastify, database)
 
 API_LIBRARY_POST(fastify, database, clients)
 
-API_LIBRARIES_PUT(fastify, database, clients, MOVIE_LOCATION, MOVIE_THUMBNAIL_LOCATION)
+API_LIBRARIES_PUT(fastify, database, clients)
 
-API_LIBRARY_DELETE(fastify, database, clients, MOVIE_THUMBNAIL_LOCATION)
+API_LIBRARY_DELETE(fastify, database, clients)
 
 API_MOVIES_GET(fastify, database)
 
-API_MOVIE_STREAM_GET(fastify, database, MOVIE_LOCATION)
+API_MOVIE_STREAM_GET(fastify, database)
 
-API_MOVIES_THUMBNAIL_GET(fastify, MOVIE_THUMBNAIL_LOCATION)
+API_MOVIES_THUMBNAIL_GET(fastify)
 
 API_COLLECTIONS_GET(fastify, database)
 
@@ -61,7 +53,7 @@ API_COLLECTION_MOVIES(fastify, database)
 
 API_SETTINGS_GET(fastify, database)
 
-API_SETTINGS_POST(fastify, database, MOVIE_LOCATION)
+API_SETTINGS_POST(fastify, database)
 
 fastify.get('/api/updateMetadata', async (request, reply) => {
     database.open()
@@ -69,7 +61,7 @@ fastify.get('/api/updateMetadata', async (request, reply) => {
     database.close()
 
     const promisses = movies.map(async movie => {
-        return generateCollectionsForMovie(movie.id, database, MOVIE_LOCATION)
+        return generateCollectionsForMovie(movie.id, database)
     })
 
     Promise.all(promisses).then(() => {
@@ -80,7 +72,7 @@ fastify.get('/api/updateMetadata', async (request, reply) => {
 })
 
 fastify.get('/api/scanDirectories', async (request, response) => {
-    Promise.all(insertNewMovies(database, MOVIE_LOCATION, MOVIE_THUMBNAIL_LOCATION)).then(() => {
+    Promise.all(insertNewMovies(database, MOVIE_THUMBNAIL_LOCATION)).then(() => {
         sendMessageToClients(clients, "libraries-updated")
         sendMessageToClients(clients, "movies-updated")
     })

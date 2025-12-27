@@ -1,6 +1,7 @@
 import type { FastifyInstance } from "fastify"
 import { DatabaseSync } from 'node:sqlite'
 import type { Setting } from "../../types/Setting"
+import GET_MOVIE_LOCATION from "../GET_MOVIE_LOCATION.js"
 
 
 export const API_SETTINGS_GET = (fastify: FastifyInstance, database: DatabaseSync) => {
@@ -14,10 +15,10 @@ export const API_SETTINGS_GET = (fastify: FastifyInstance, database: DatabaseSyn
     })
 }
 
-export const API_SETTINGS_POST = (fastify: FastifyInstance, database: DatabaseSync, MOVIE_LOCATION: string) => {
+export const API_SETTINGS_POST = (fastify: FastifyInstance, database: DatabaseSync) => {
     fastify.post("/api/settings", async (request, reply) => {
         if (!request.body) {
-            reply.code(400).send('Missinb Body')
+            reply.code(400).send('Missing Body')
             return
         }
 
@@ -28,11 +29,6 @@ export const API_SETTINGS_POST = (fastify: FastifyInstance, database: DatabaseSy
             database.prepare('UPDATE settings SET value = ? WHERE key = ?').run(setting.value, setting.key)
         })
         database.close()
-
-        const newMovieLocation = settings.find(setting => setting.key === 'MOVIE_LOCATION')?.value
         //DELETE ALL LIBRARIES WHEN THIS HAPPENS???
-        if(newMovieLocation !== undefined) {
-            MOVIE_LOCATION = newMovieLocation
-        }
     })
 }

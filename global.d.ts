@@ -1,0 +1,1 @@
+declare const __WSURL__: "ws://localhost:4000/ws" | "/ws"

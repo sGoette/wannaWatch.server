@@ -4,6 +4,8 @@ import path from "path"
 import { statSync, createReadStream } from 'fs'
 import { readFile } from "fs/promises"
 import mime from "mime-types"
+import GET_MOVIE_LOCATION from "../GET_MOVIE_LOCATION.js"
+import { MOVIE_THUMBNAIL_LOCATION } from "../server.js"
 
 export const API_MOVIE_GET = (fastify: FastifyInstance, database: DatabaseSync) => {
     fastify.get('/api/movie/:movieId', async (request, reply) => {
@@ -17,8 +19,9 @@ export const API_MOVIE_GET = (fastify: FastifyInstance, database: DatabaseSync) 
     })
 }
 
-export const API_MOVIE_STREAM_GET = (fastify: FastifyInstance, database: DatabaseSync, MOVIE_LOCATION: string) => {
+export const API_MOVIE_STREAM_GET = (fastify: FastifyInstance, database: DatabaseSync) => {
     fastify.get("/api/movie/stream/:movieId", async (request, reply) => {
+        const MOVIE_LOCATION = GET_MOVIE_LOCATION()
         const { movieId } = request.params as { movieId: number }
 
         database.open()
@@ -86,7 +89,7 @@ export const API_MOVIE_STREAM_GET = (fastify: FastifyInstance, database: Databas
     })
 }
 
-export const API_MOVIES_THUMBNAIL_GET = (fastify: FastifyInstance, MOVIE_THUMBNAIL_LOCATION: string) => {
+export const API_MOVIES_THUMBNAIL_GET = (fastify: FastifyInstance) => {
     fastify.get('/api/movie/thumbnail/:filename', async (request, reply) => {
         const { filename } = request.params as { filename: string }
     

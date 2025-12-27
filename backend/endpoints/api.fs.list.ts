@@ -1,9 +1,11 @@
 import type { FastifyInstance } from 'fastify'
 import { readdir } from 'fs/promises'
 import path from "path"
+import GET_MOVIE_LOCATION from '../GET_MOVIE_LOCATION.js'
 
-const API_FS_LIST_GET = (fastify: FastifyInstance, MOVIE_LOCATION: string) => {
+const API_FS_LIST_GET = (fastify: FastifyInstance) => {
     fastify.get('/api/fs/list', async (request, reply) => {
+        const MOVIE_LOCATION = GET_MOVIE_LOCATION()
         const { path: requestedPath } = request.query as { path?: string }
 
         const resolvedPath = requestedPath

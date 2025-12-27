@@ -7,6 +7,8 @@ import { insertNewMovies } from "../insertNewMovies.js"
 import type { Movie } from "../../types/Movie"
 import { unlink } from 'fs'
 import path from 'path'
+import GET_MOVIE_LOCATION from "../GET_MOVIE_LOCATION.js"
+import { MOVIE_THUMBNAIL_LOCATION } from '../server.js'
 
 export const API_LIBRARY_GET = (fastify: FastifyInstance, database: DatabaseSync) => {
     fastify.get('/api/library/:libraryId', async (request, reply) => {
@@ -43,8 +45,9 @@ export const API_LIBRARY_POST = (fastify: FastifyInstance, database: DatabaseSyn
     })
 }
 
-export const API_LIBRARIES_PUT = (fastify: FastifyInstance, database: DatabaseSync, clients: Set<WebSocket>, MOVIE_LOCATION: string, MOVIE_THUMBNAIL_LOCATION: string ) => {
+export const API_LIBRARIES_PUT = (fastify: FastifyInstance, database: DatabaseSync, clients: Set<WebSocket> ) => {
     fastify.put('/api/library', async (request, reply) => {
+        const MOVIE_LOCATION = GET_MOVIE_LOCATION()
         if (!request.body) {
             reply.code(400).send('Missing Body')
             return
@@ -61,7 +64,7 @@ export const API_LIBRARIES_PUT = (fastify: FastifyInstance, database: DatabaseSy
         database.close()
         sendMessageToClients(clients, "libraries-updated")
 
-        Promise.all(insertNewMovies(database, MOVIE_LOCATION, MOVIE_THUMBNAIL_LOCATION)).then(() => {
+        Promise.all(insertNewMovies(database, MOVIE_THUMBNAIL_LOCATION)).then(() => {
             sendMessageToClients(clients, "movies-updated")
         })
 
@@ -69,7 +72,7 @@ export const API_LIBRARIES_PUT = (fastify: FastifyInstance, database: DatabaseSy
     })
 }
 
-export const API_LIBRARY_DELETE = (fastify: FastifyInstance, database: DatabaseSync, clients: Set<WebSocket>, MOVIE_THUMBNAIL_LOCATION: string) => {
+export const API_LIBRARY_DELETE = (fastify: FastifyInstance, database: DatabaseSync, clients: Set<WebSocket>) => {
     fastify.delete('/api/library/:libraryId', async ( request, reply) => {
         const { libraryId } = request.params as { libraryId: string }
     

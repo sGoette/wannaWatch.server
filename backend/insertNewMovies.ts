@@ -4,8 +4,10 @@ import type { Library } from '../types/Library.js'
 import { scanDirectoryForNewMovies } from './scanDirectoryForNewMovies.js'
 import path from "path"
 import { generateCollectionsForMovie } from './generateCollectionsForMovie.js'
+import GET_MOVIE_LOCATION from './GET_MOVIE_LOCATION.js'
 
-export const insertNewMovies = (database: DatabaseSync, MOVIE_LOCATION: string, MOVIE_THUMBNAIL_LOCATION: string, libraryId?: number): Promise<void | MovieMetadata>[] => {
+export const insertNewMovies = (database: DatabaseSync, MOVIE_THUMBNAIL_LOCATION: string, libraryId?: number): Promise<void | MovieMetadata>[] => {
+    const MOVIE_LOCATION = GET_MOVIE_LOCATION()
     database.open()
     const libraries = database.prepare('SELECT * FROM libraries').all() as Library[]
     database.close()
@@ -29,7 +31,7 @@ export const insertNewMovies = (database: DatabaseSync, MOVIE_LOCATION: string, 
             )
             .run(title, file_location, metaData.duration, metaData.width ?? 0, metaData.height ?? 0, metaData.codec ?? "", metaData.format ?? "", metaData.thumbnailPath ?? "", library.id)
             database.close()
-            generateCollectionsForMovie(Number(insertedMovie.lastInsertRowid), database, MOVIE_LOCATION)
+            generateCollectionsForMovie(Number(insertedMovie.lastInsertRowid), database)
         }))
     })
 

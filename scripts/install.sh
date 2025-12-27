@@ -41,11 +41,17 @@ chown -h wannawatchserver:wannawatchserver /usr/local/wannawatch.server/current
 cd /usr/local/wannawatch.server/current
 su -m wannawatchserver -c "node /usr/local/wannawatch.server/current/backend/server.js"
 
+#set port forwarding in host
+sysrc pf_enable=YES
+nano /etc/pf.conf
+rdr pass on igc0 proto tcp from any to 192.168.1.181 port 80 -> 192.168.1.181 port 4000 #wird ins file pf.conf geschrieben
+pfctl -f /etc/pf.conf
+service pf start
 
 #update
 cd /usr/local/wannawatch.server/releases
-fetch https://github.com/sGoette/wannaWatch.server/releases/download/v0.1.9/wannawatchserver-v0.1.9.tar.gz
-tar -xzf wannawatchserver-v0.1.9.tar.gz
-ln -sfn /usr/local/wannawatch.server/releases/v0.1.9 /usr/local/wannawatch.server/current
+fetch https://github.com/sGoette/wannaWatch.server/releases/download/v0.1.11/wannawatchserver-v0.1.11.tar.gz
+tar -xzf wannawatchserver-v0.1.11.tar.gz
+ln -sfn /usr/local/wannawatch.server/releases/v0.1.11 /usr/local/wannawatch.server/current
 chown -h wannawatchserver:wannawatchserver /usr/local/wannawatch.server/current
 service wannawatch restart

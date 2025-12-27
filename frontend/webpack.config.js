@@ -1,6 +1,7 @@
 import path from "path";
 import HtmlWebpackPlugin from "html-webpack-plugin";
 import { CleanWebpackPlugin } from "clean-webpack-plugin";
+import webpack from "webpack";
 
 const exports = {
   entry: "./src/index.tsx",
@@ -47,6 +48,9 @@ const exports = {
     new HtmlWebpackPlugin({
       template: "./public/index.html",
     }),
+    new webpack.DefinePlugin({
+      __WSURL__: JSON.stringify('/ws')
+    })
   ],
   mode: "production",
 };

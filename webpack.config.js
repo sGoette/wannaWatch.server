@@ -1,6 +1,7 @@
 import path from "path";
 import HtmlWebpackPlugin from "html-webpack-plugin";
 import { CleanWebpackPlugin } from "clean-webpack-plugin";
+import webpack from "webpack";
 
 const exports = {
   entry: "./frontend/src/index.tsx",
@@ -46,6 +47,9 @@ const exports = {
     new HtmlWebpackPlugin({
       template: "./frontend/public/index.html",
     }),
+    new webpack.DefinePlugin({
+      __WSURL__: JSON.stringify('ws://localhost:4000/ws')
+    })
   ],
   devServer: {
     static: "./dist/frontend",

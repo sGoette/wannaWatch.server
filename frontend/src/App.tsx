@@ -6,7 +6,7 @@ import { MoviePlayer } from "./MoviePlayer"
 import useWebSocket from "react-use-websocket"
 
 export const WebSocketContext: React.Context<{ timestamp: number, message: string }> = React.createContext({timestamp: Date.now(), message: ""})
-const SOCKET_URL = "ws://localhost:4000/ws" // "/ws"
+const SOCKET_URL = __WSURL__
 
 const App = () => {
   const [ websocketMessage, setWebsocketMessage ] = useState<{timestamp: number, message: string}>({timestamp: Date.now(), message: ""})
