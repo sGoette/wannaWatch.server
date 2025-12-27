@@ -1,38 +1,33 @@
 import Fastify from "fastify"
-import websocket from "@fastify/websocket"
 import staticPlugin from '@fastify/static'
 import type { WebSocket } from "@fastify/websocket"
 import { DatabaseSync } from 'node:sqlite'
-import { existsSync, statSync, createReadStream, unlink, exists } from 'fs'
-import { access, constants, readdir, readFile } from 'fs/promises'
-import type { Library } from "../types/Library"
+import { existsSync, createReadStream } from 'fs'
 import initDatabase from "./initDatabase.js"
 import path from "path"
-import mime from "mime-types"
 import { insertNewMovies } from "./insertNewMovies.js"
-import type { Setting } from '../types/Setting'
-import type { Movie } from "../types/Movie"
+import API_FS_LIST_GET from "./endpoints/api.fs.list.js"
+import API_LIBRARIES_GET from "./endpoints/api.libraries.js"
+import { API_LIBRARIES_PUT, API_LIBRARY_DELETE, API_LIBRARY_GET, API_LIBRARY_POST } from "./endpoints/api.library.js"
+import { API_MOVIES_GET } from "./endpoints/api.movies.js"
+import { API_MOVIE_STREAM_GET, API_MOVIES_THUMBNAIL_GET } from "./endpoints/api.movie.js"
+import { API_SETTINGS_GET, API_SETTINGS_POST } from "./endpoints/api.settings.js"
+import sendMessageToClients from "./sendMessageToClients.js"
+import type { Movie } from "../types/Movie.js"
+import { generateCollectionsForMovie } from "./generateCollectionsForMovie.js"
+import { API_COLLECTIONS_GET } from "./endpoints/api.collections.js"
+import { API_COLLECTION_MOVIES } from "./endpoints/api.collection.movies.js"
 
 const DATABASE_LOCATION = '../../data/db/database.sqlite'
-const MOVIE_THUMBNAIL_LOCATION = '../../data/thumbnails'
+export const MOVIE_THUMBNAIL_LOCATION = '../../data/thumbnails'
+const FRONTEND_PATH = path.resolve("./frontend")
 
-const fastify = Fastify({ logger: false })
-fastify.register(websocket)
+const fastify = Fastify({ logger: true })
+
 const clients = new Set<WebSocket>()
 
 const database = new DatabaseSync(DATABASE_LOCATION, { open: false })
-
-if (!existsSync(DATABASE_LOCATION)) {
-    initDatabase(database)
-}
-
-const sendMessageToClients = (msg: string) => {
-    for (const client of clients) {
-        if (client.readyState === client.OPEN) {
-            client.send(JSON.stringify({ type: msg }))
-        }
-    }
-}
+initDatabase(database)
 
 const getSettingValueFor = (key: string, database: DatabaseSync): string => {
     database.open()
@@ -40,300 +35,72 @@ const getSettingValueFor = (key: string, database: DatabaseSync): string => {
     database.close()
     return result.value
 }
+var MOVIE_LOCATION = getSettingValueFor('MOVIE_LOCATION', database) //When location is updated, is isn't passed down. Fetch from db on usage. 
 
-var MOVIE_LOCATION = getSettingValueFor('MOVIE_LOCATION', database)
+API_FS_LIST_GET(fastify, MOVIE_LOCATION)
 
-fastify.get('/api/fs/list', async (request, reply) => {
-    const { path: requestedPath } = request.query as { path?: string }
+API_LIBRARIES_GET(fastify, database)
 
-    const resolvedPath = requestedPath
-        ? path.resolve(MOVIE_LOCATION, requestedPath)
-        : MOVIE_LOCATION
+API_LIBRARY_GET(fastify, database)
 
-    // Security: prevent escaping base path
-    if (!resolvedPath.startsWith(MOVIE_LOCATION)) {
-        reply.code(403).send({ error: "Access denied" })
-        return;
-    }
+API_LIBRARY_POST(fastify, database, clients)
 
-    try {
-        const entries = await readdir(resolvedPath, { withFileTypes: true })
+API_LIBRARIES_PUT(fastify, database, clients, MOVIE_LOCATION, MOVIE_THUMBNAIL_LOCATION)
 
-        const directories = entries
-            .filter((e) => e.isDirectory())
-            .map((e) => ({
-                name: e.name,
-                path: path.relative(MOVIE_LOCATION, path.join(resolvedPath, e.name)),
-                type: "directory",
-            }));
+API_LIBRARY_DELETE(fastify, database, clients, MOVIE_THUMBNAIL_LOCATION)
 
-        reply.send({
-            path: path.relative(MOVIE_LOCATION, resolvedPath),
-            entries: directories,
-        })
-    } catch (err: any) {
-        reply.code(500).send({
-            error: "Unable to read directory",
-            message: err.message,
-        })
-    }
-})
+API_MOVIES_GET(fastify, database)
 
-fastify.get('/api/libraries', async (request, reply) => {
+API_MOVIE_STREAM_GET(fastify, database, MOVIE_LOCATION)
+
+API_MOVIES_THUMBNAIL_GET(fastify, MOVIE_THUMBNAIL_LOCATION)
+
+API_COLLECTIONS_GET(fastify, database)
+
+API_COLLECTION_MOVIES(fastify, database)
+
+API_SETTINGS_GET(fastify, database)
+
+API_SETTINGS_POST(fastify, database, MOVIE_LOCATION)
+
+fastify.get('/api/updateMetadata', async (request, reply) => {
     database.open()
-    const libraries = database.prepare('SELECT * FROM libraries ORDER BY name ASC').all()
-    database.close()
-    reply.type('application/json').code(200)
-    return libraries
-})
-
-fastify.get('/api/library/:libraryId', async (request, reply) => {
-    const { libraryId } = request.params as { libraryId: string }
-    database.open()
-    const library = database.prepare('SELECT * FROM libraries WHERE id = ?').get(libraryId)
+    const movies = database.prepare(`SELECT * FROM movies`).all() as Movie[]
     database.close()
 
-    if (!library) {
-        reply.code(404).send('Library not found')
-        return
-    }
-
-    reply.type('application/json').code(200)
-    return library
-})
-
-fastify.post('/api/library', async (request, reply) => {
-    if (!request.body) {
-        reply.code(400).send('Missinb Body')
-        return
-    }
-
-    const library = request.body as Library
-
-    database.open()
-    database.prepare('UPDATE libraries SET name = ?, media_folder = ? WHERE id = ?').run(library.name, library.media_folder, library.id)
-    database.close()
-
-    sendMessageToClients("libraries-updated")
-    reply.code(200).send("Library updated")
-})
-
-fastify.put('/api/library', async (request, reply) => {
-    if (!request.body) {
-        reply.code(400).send('Missing Body')
-        return
-    }
-
-    const library = request.body as { name: string, media_folder: string }
-
-    database.open()
-    const insertLibrary = database.prepare(`
-        INSERT INTO libraries
-        (name, media_folder)
-        VALUES (?, ?)
-    `).run(library.name, library.media_folder)
-    database.close()
-    sendMessageToClients("libraries-updated")
-
-    Promise.all(insertNewMovies(database, MOVIE_LOCATION, MOVIE_THUMBNAIL_LOCATION)).then(() => {
-        sendMessageToClients("movies-updated")
+    const promisses = movies.map(async movie => {
+        return generateCollectionsForMovie(movie.id, database, MOVIE_LOCATION)
     })
 
-    reply.code(200).send("Library inserted")
-})
-
-fastify.delete('/api/library/:libraryId', async ( request, reply) => {
-    const { libraryId } = request.params as { libraryId: string }
-
-    if(!libraryId) {
-        reply.code(400).send("Library ID is missing")
-        return
-    }
-
-    database.open()
-    const movies = database.prepare('SELECT * FROM movies WHERE library_id = ?').all(libraryId) as Movie[]
-    database.close()
-
-    const thumbnailDeletionPromisses = movies.map(movie => {
-        const thumbnailPath = path.join(MOVIE_THUMBNAIL_LOCATION, movie.thumbnail_file_name)
-        return unlink(thumbnailPath, () => {})
+    Promise.all(promisses).then(() => {
+        sendMessageToClients(clients, 'movies-updated')
     })
 
-    Promise.all(thumbnailDeletionPromisses).then(() => {
-        database.open()
-        database.prepare('DELETE FROM movies WHERE library_id = ?').run(libraryId)
-        database.prepare('DELETE FROM libraries WHERE id = ?').run(libraryId)
-        database.close()
-        sendMessageToClients("libraries-updated")
-    })
-    reply.code(200).send("Started deleting library")
+    reply.code(200).send('Start scanning Metadata...')
 })
 
 fastify.get('/api/scanDirectories', async (request, response) => {
     Promise.all(insertNewMovies(database, MOVIE_LOCATION, MOVIE_THUMBNAIL_LOCATION)).then(() => {
-        sendMessageToClients("libraries-updated")
-        sendMessageToClients("movies-updated")
+        sendMessageToClients(clients, "libraries-updated")
+        sendMessageToClients(clients, "movies-updated")
     })
 
     response.code(200).send('Started scanning for movies...')
-})
-
-fastify.get('/api/movies/:libraryId', async (request, response) => {
-    const { libraryId } = request.params as { libraryId: number }
-    database.open()
-    const movies = database.prepare(`SELECT * FROM movies WHERE library_id = ? ORDER BY title ASC`).all(libraryId)
-    database.close()
-    response.type('application/json').code(200)
-    return movies
-})
-
-fastify.get('/api/movie/thumbnail/:filename', async (request, reply) => {
-    const { filename } = request.params as { filename: string }
-
-    if (filename.includes("..") || filename.includes("/")) {
-        reply.status(400).send("Invalid filename")
-        return
-    }
-
-    const filePath = path.join(MOVIE_THUMBNAIL_LOCATION, filename)
-
-    try {
-        const data = await readFile(filePath)
-
-        // Detect MIME type from extension
-        const mimeType = mime.lookup(filePath) || "application/octet-stream"
-
-        reply
-            .header("Content-Type", mimeType)
-            .header("Cache-Control", "public, max-age=86400") // optional caching
-            .send(data)
-    } catch (err: any) {
-        if (err.code === "ENOENT") {
-            reply.status(404).send("File not found");
-        } else {
-            reply.status(500).send("Internal server error");
-        }
-    }
-})
-
-fastify.get('/api/movie/:movieId', async (request, reply) => {
-    const { movieId } = request.params as { movieId: number }
-
-    database.open()
-    const movie = database.prepare(`SELECT * FROM movies WHERE id = ?`).get(movieId)
-    database.close()
-    reply.type('application/json').code(200)
-    return movie
-})
-
-fastify.get("/api/movie/stream/:movieId", async (request, reply) => {
-    const { movieId } = request.params as { movieId: number }
-
-    database.open()
-    const row = database.prepare(`SELECT file_location FROM movies WHERE id = ?`).get(movieId)
-    database.close()
-
-    if (!row) {
-        reply.code(404).send("Movie not found")
-        return
-    }
-
-    const filePath = path.join(MOVIE_LOCATION, row.file_location as string)
-
-    const stat = statSync(filePath)
-    const fileSize = stat.size
-
-    const range = request.headers.range
-    if (!range) {
-        reply.code(416).send("Range header required")
-        return
-    }
-
-    const match = range.match(/bytes=(\d+)-(\d*)/)
-    if (!match) {
-        reply.code(416).send("Invalid Range")
-        return
-    }
-
-    const start = parseInt(match[1] as string, 10)
-    const end = match[2]
-        ? parseInt(match[2] as string, 10)
-        : Math.min(start + 1024 * 1024 * 5, fileSize - 1)
-
-    if (start >= fileSize || end >= fileSize) {
-        reply.code(416).send("Range not Satisfiable")
-        return
-    }
-
-    const chunkSize = end - start + 1
-
-    const stream = createReadStream(filePath, { start, end })
-
-    request.raw.on("close", () => {
-        stream.destroy()
-    })
-
-    stream.on("error", (err) => {
-        console.error("File stream error", err)
-        reply.raw.destroy(err)
-    })
-
-    reply
-        .code(206)
-        .type("video/mp4")
-        .headers({
-            "Content-Range": `bytes ${start}-${end}/${fileSize}`,
-            "Accept-Ranges": "bytes",
-            "Content-Length": chunkSize.toString(),
-            "Content-Type": "video/mp4", // important for Apple TV
-            "Cache-Control": "no-cache",
-        })
-        .send(stream)
-
-    return reply
-})
-
-fastify.get("/api/settings", async (request, reply) => {
-    database.open()
-    const settings = database.prepare('SELECT * FROM settings ORDER BY key ASC').all() as Setting[]
-    database.close()
-
-    reply.type('application/json').code(200)
-    return settings
-})
-
-fastify.post("/api/settings", async (request, reply) => {
-    if (!request.body) {
-        reply.code(400).send('Missinb Body')
-        return
-    }
-
-    const settings = request.body as Setting[]
-
-    database.open()
-    settings.forEach(setting => {
-        database.prepare('UPDATE settings SET value = ? WHERE key = ?').run(setting.value, setting.key)
-    })
-    database.close()
-
-    const newMovieLocation = settings.find(setting => setting.key === 'MOVIE_LOCATION')?.value
-    //DELETE ALL LIBRARIES WHEN THIS HAPPENS???
-    if(newMovieLocation !== undefined) {
-        MOVIE_LOCATION = newMovieLocation
-    }
 })
 
 fastify.get("/api/health", async () => {
   return { status: "ok" }
 })
 
-fastify.register(async () => {
-    fastify.get("/ws", { websocket: true }, (socket, request) => {
-        clients.add(socket)
-    })
+fastify.register(import('@fastify/websocket'), {
+    options: { perMessageDeflate: false }
 })
 
-const FRONTEND_PATH = path.resolve("./frontend")
+fastify.register(async (fastify) => {
+    fastify.get("/ws", { websocket: true }, (connection, request) => {
+        clients.add(connection)
+    })
+})
 
 fastify.register(staticPlugin, {
     root: FRONTEND_PATH,

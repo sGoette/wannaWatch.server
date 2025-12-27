@@ -48,3 +48,4 @@ fetch https://github.com/sGoette/wannaWatch.server/releases/download/v0.1.9/wann
 tar -xzf wannawatchserver-v0.1.9.tar.gz
 ln -sfn /usr/local/wannawatch.server/releases/v0.1.9 /usr/local/wannawatch.server/current
 chown -h wannawatchserver:wannawatchserver /usr/local/wannawatch.server/current
+service wannawatch restart

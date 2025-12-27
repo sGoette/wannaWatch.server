@@ -1,0 +1,38 @@
+import type { FastifyInstance } from "fastify"
+import { DatabaseSync } from 'node:sqlite'
+import type { Setting } from "../../types/Setting"
+
+
+export const API_SETTINGS_GET = (fastify: FastifyInstance, database: DatabaseSync) => {
+    fastify.get("/api/settings", async (request, reply) => {
+        database.open()
+        const settings = database.prepare('SELECT * FROM settings ORDER BY key ASC').all() as Setting[]
+        database.close()
+
+        reply.type('application/json').code(200)
+        return settings
+    })
+}
+
+export const API_SETTINGS_POST = (fastify: FastifyInstance, database: DatabaseSync, MOVIE_LOCATION: string) => {
+    fastify.post("/api/settings", async (request, reply) => {
+        if (!request.body) {
+            reply.code(400).send('Missinb Body')
+            return
+        }
+
+        const settings = request.body as Setting[]
+
+        database.open()
+        settings.forEach(setting => {
+            database.prepare('UPDATE settings SET value = ? WHERE key = ?').run(setting.value, setting.key)
+        })
+        database.close()
+
+        const newMovieLocation = settings.find(setting => setting.key === 'MOVIE_LOCATION')?.value
+        //DELETE ALL LIBRARIES WHEN THIS HAPPENS???
+        if(newMovieLocation !== undefined) {
+            MOVIE_LOCATION = newMovieLocation
+        }
+    })
+}

@@ -1,0 +1,20 @@
+root
+|--library dir (Home Movies)
+   |--Collection dir (Summer Vacation 2025)
+      |--Movie_ONE.mp4
+      |--Movie_TWO.mp4
+      |--Movie_THREE dir
+         |--Movie_TREE_part1.mp4
+         |--Movie_TREE_part2.mp4
+         |--Movie_TREE_part3.mp4
+|--Movies dir (Blockbuster)
+   |--The Matrix dir
+      |--The Matrix.mp4
+      |--artwork.jpg
+      |--subtitle_EN.sub
+|--Series dir
+   |--The Simpsons dir
+      |--Season 1
+         |--S1E1_Bart-and-List.mp4
+         |--S1E2_Homer-and-Marge.mp4
+
