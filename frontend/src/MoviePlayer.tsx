@@ -13,7 +13,7 @@ export const MoviePlayer = ({
     let { movieId } = useParams()
     const videoRef = useRef<HTMLVideoElement>(null)
 
-    const src = `/api/movie/stream/${movieId}`
+    const src = `/api/movie/${movieId}/stream`
 
     useEffect(() => {
         const video = videoRef.current

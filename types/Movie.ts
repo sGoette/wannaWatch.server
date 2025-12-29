@@ -7,6 +7,6 @@ export type Movie = {
     height: number
     codec: string
     format: string
-    thumbnail_file_name: string
+    poster_file_name: string
     library_id: number
 }

@@ -10,19 +10,42 @@ fi
 
 echo "🚀 Building release $VERSION"
 
-rm -rf dist
+BUILD_DIR="build"
+RELEASE_DIR="wannawatchserver-$VERSION"
+ARCHIVE_NAME="$RELEASE_DIR.tar.gz"
+
+
+rm -rf "$BUILD_DIR" "$RELEASE_DIR"
+mkdir -p "$BUILD_DIR"
+mkdir -p "$RELEASE_DIR"
+
 npm run build
 
-RELEASE_DIR="$VERSION"
-ARCHIVE_NAME="wannawatchserver-$VERSION.tar.gz"
+mkdir -p "$RELEASE_DIR/backend"
+rsync -a \
+  --exclude ".venv" \
+  --exclude "__pycache__" \
+  --exclude "*.pyc" \
+  --exclude ".pytest_cache" \
+  --exclude ".mypy_cache" \
+  --exclude ".ruff_cache" \
+  --exclude ".DS_Store" \
+  backend/ "$RELEASE_DIR/backend/"
+
+mkdir -p "$RELEASE_DIR/frontend"
+rsync -a \
+  --exclude "node_modules" \
+  --exclude ".DS_Store" \
+  dist/frontend/ "$RELEASE_DIR/frontend/"
+
+if [ ! -f "$RELEASE_DIR/frontend/index.html" ]; then
+  echo "❌ frontend/index.html not found in release output."
+  echo "   Adjust your frontend build output path or update the rsync source."
+  exit 1
+fi
+
+tar -czf $BUILD_DIR/"$ARCHIVE_NAME" "$RELEASE_DIR"
 
 rm -rf "$RELEASE_DIR"
-mkdir "$RELEASE_DIR"
 
-cp -r dist/* "$RELEASE_DIR/"
-
-tar -czf build/"$ARCHIVE_NAME" "$RELEASE_DIR"
-
-rm -rf "$RELEASE_DIR"
-
-echo "✅ Created $ARCHIVE_NAME"
+echo "✅ Created $BUILD_DIR/$ARCHIVE_NAME"

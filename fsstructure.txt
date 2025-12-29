@@ -1,0 +1,22 @@
+/usr/local/wannawatch.server -> root dir (run from here)
+current (link to current release)
+data
+    db
+        database.sqlite
+    posters
+        some.jpg
+        ...
+logs
+
+releases
+    v0.1.0
+    v0.1.1 (current is same like this)
+        backend
+            app
+                api
+                db
+                service
+                main.py
+        frontend
+    ...
+wannawatch.pid

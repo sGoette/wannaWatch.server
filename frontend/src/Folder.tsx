@@ -15,9 +15,9 @@ export const Folder = (props: { name: string, path: string, libraryMediaFolder: 
     }
 
     const fetchSubFolders = () => {
-        const params = { path: props.path }
+        const params = { current_directory: props.path }
 
-        axios.get('/api/fs/list', { params })
+        axios.get('/api/filesystem/list', { params })
         .then(response => {
             if(response.status === 200) {
                 setSubFolders(response.data.entries as FolderEntry[])
