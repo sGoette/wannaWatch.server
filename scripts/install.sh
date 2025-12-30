@@ -37,13 +37,7 @@ ln -sfn "$RELEASE_DIR" "$CURRENT_LINK"
 info "Installing system packages (Python 3.11 stack + ffmpeg)"
 # Keep this minimal; adjust package names if your jail uses a specific python version.
 pkg update -f
-pkg install -y \
-    python3 \
-    ffmpeg \
-    py311-fastapi \
-    py311-uvicorn \
-    py311-aiosqlite \
-    py311-pydantic
+pkg install -y python3 ffmpeg py311-fastapi py311-uvicorn py311-aiosqlite py311-pydantic
 
 # --- Install rc.d script ---
 info "Installing rc.d script to /usr/local/etc/rc.d/wannawatch"

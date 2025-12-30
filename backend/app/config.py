@@ -2,7 +2,7 @@ import aiosqlite
 from pathlib import Path
 
 
-BASE_DIR = Path(__file__).parent.parent.parent.parent.parent.resolve() #wannawatch.server folder
+BASE_DIR = Path(__file__).parent.parent.parent.parent.resolve() #wannawatch.server folder
 POSTER_DIR = BASE_DIR / "data/posters"
 DB_PATH = BASE_DIR / "data/db/database.sqlite"
 

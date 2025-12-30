@@ -16,7 +16,9 @@ from app.api.scan import router as scan_router
 
 from app.db.database import init_db
 from app.scanner.worker import ScannerWorker
-from app.config import FRONTEND_DIR, INDEX_HTML
+from app.config import FRONTEND_DIR, INDEX_HTML, DB_PATH
+
+print(DB_PATH)
 
 scanner = ScannerWorker()
 
