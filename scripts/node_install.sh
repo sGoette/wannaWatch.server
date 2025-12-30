@@ -8,16 +8,6 @@ iocage create \
 
 #Base package inside the jail
 pkg update
-pkg install -y \
-  node20 \
-  ffmpeg \
-  sqlite3 \
-  git \
-  ca_root_nss
-
-#Verify
-node -v
-ffmpeg -version
 
 #make directories
 cd /usr/local
@@ -60,7 +50,7 @@ chown -h wannawatchserver:wannawatchserver /usr/local/wannawatch.server/current
 
 # PYTHON Version of install.....
 cd /usr/local/wannawatch.server/releases
-fetch https://github.com/sGoette/wannaWatch.server/releases/download/v0.1.13/wannawatchserver-v0.1.13.tar.gz
-tar -xzf wannawatchserver-v0.1.13.tar.gz
-cd /usr/local/wannawatch.server/releases/v0.1.13
+fetch https://github.com/sGoette/wannaWatch.server/releases/download/v0.1.14/wannawatchserver-v0.1.14.tar.gz
+tar -xzf wannawatchserver-v0.1.14.tar.gz
+cd /usr/local/wannawatch.server/releases/v0.1.14
 sh install.sh

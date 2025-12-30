@@ -6,7 +6,6 @@
 
 . /etc/rc.subr
 
-set -x
 name="wannawatch"
 rcvar=wannawatch_enable
 
@@ -18,31 +17,9 @@ log_file="${log_dir}/wannawatch.log"
 pidfile="/usr/local/wannawatch.server/wannawatch.pid"
 
 command="/usr/sbin/daemon"
+procname="/usr/local/bin/python3"
 command_args="-u wannawatchserver -p ${pidfile} -o ${log_file} \
-  -c sh -lc 'cd ${app_dir} && exec /usr/local/bin/python3 -m uvicorn app.main:app --app-dir backend'"
-
-start_cmd="wannawatch_start"
-stop_cmd="wannawatch_stop"
-status_cmd="wannawatch_status"
-
-wannawatch_start() {
-  if [ ! -d "${app_dir}" ]; then
-    echo "App dir not found: ${app_dir}"
-    return 1
-  fi
-
-  echo "$(date) Starting wannawatch" >> "${log_file}"
-  run_rc_command start
-}
-
-wannawatch_stop() {
-  echo "$(date) Stopping wannawatch" >> "${log_file}"
-  run_rc_command stop
-}
-
-wannawatch_status() {
-  run_rc_command status
-}
+  /usr/local/bin/python3 -m uvicorn app.main:app --app-dir ${app_dir}/backend"
 
 load_rc_config $name
 run_rc_command "$1"
