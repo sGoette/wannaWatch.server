@@ -12,7 +12,6 @@ async def get_libraries():
         db.row_factory = aiosqlite.Row
         cursor = await db.execute("SELECT * FROM libraries ORDER BY name ASC")
         rows = await cursor.fetchall()
-        await cursor.close()
 
     if not rows:
         # Return empty array instead of 404

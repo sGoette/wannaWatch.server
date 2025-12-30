@@ -12,7 +12,6 @@ async def get_settings():
         db.row_factory = aiosqlite.Row
         cursor = await db.execute("SELECT * FROM settings ORDER BY key ASC")
         rows = await cursor.fetchall()
-        await cursor.close()
 
     #Convert each row to dict
     return [dict(row) for row in rows]
@@ -24,6 +23,5 @@ async def post_settings(settings: List[Setting]):
             # TODO: Check if libraries exist. If yes, they have to be deleted with all their files. 
             await db.execute("UPDATE settings SET value = ? WHERE key = ?", (setting.value, setting.key))
             await db.commit()
-            await db.close()
 
     return {"detail": "Settings updated successfully"}

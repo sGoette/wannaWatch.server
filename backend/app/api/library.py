@@ -26,7 +26,6 @@ async def create_library(request: Request, library: LibraryCreate):
         cursor = await db.execute("INSERT INTO libraries (name, media_folder) VALUES (?, ?)", (library.name, library.media_folder))
         await db.commit()
         library_id = cursor.lastrowid
-        await cursor.close()
 
     scanner = request.app.state.scanner
     scanner.submit(ScanJob(library_id=library_id))
@@ -43,7 +42,6 @@ async def update_library(library: Library):
     async with aiosqlite.connect(DB_PATH) as db:
         await db.execute("UPDATE libraries SET name = ?, media_folder = ? WHERE id = ?", (library.name, library.media_folder, library.id))
         await db.commit()
-        await db.close()
 
     #Return the updated library
     return library
@@ -57,7 +55,6 @@ async def delete_library(request: Request,library_id: int):
         cursor = await db.execute("DELETE FROM libraries WHERE id = ?", (library_id,))
         await db.commit()
         rowcount = cursor.rowcount
-        await db.close()
 
     if rowcount == 0:
         raise HTTPException(status_code=404, detail="Library not found")
