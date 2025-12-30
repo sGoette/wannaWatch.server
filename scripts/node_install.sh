@@ -50,7 +50,40 @@ chown -h wannawatchserver:wannawatchserver /usr/local/wannawatch.server/current
 
 # PYTHON Version of install.....
 cd /usr/local/wannawatch.server/releases
-fetch https://github.com/sGoette/wannaWatch.server/releases/download/v0.1.17/wannawatchserver-v0.1.17.tar.gz
-tar -xzf wannawatchserver-v0.1.17.tar.gz
-cd /usr/local/wannawatch.server/releases/v0.1.17
+fetch https://github.com/sGoette/wannaWatch.server/releases/download/v0.1.18/wannawatchserver-v0.1.18.tar.gz
+tar -xzf wannawatchserver-v0.1.18.tar.gz
+cd /usr/local/wannawatch.server/releases/v0.1.18
 sh install.sh
+
+
+
+
+
+ps auxww
+
+
+
+
+
+
+/usr/sbin/daemon -p /usr/local/wannawatch.server/wannawatch.pid -o /usr/local/wannawatch.server/logs/wannawatch.log /usr/bin/su -m wannawatchserver -c "/usr/local/bin/python3 -m uvicorn app.main:app --app-dir /usr/local/wannawatch.server/current/backend --host 0.0.0.0 --port 4000"
+
+
+
+/usr/local/bin/python3 -m uvicorn app.main:app --app-dir /usr/local/wannawatch.server/current/backend --host 0.0.0.0 --port 4000
+
+su -m wannawatchserver -c "touch /usr/local/wannawatch.server/logs/test.log && echo ok >> /usr/local/wannawatch.server/logs/test.log"
+su -m wannawatchserver -c "touch /usr/local/wannawatch.server/wannawatch.pid"
+
+
+chown -R wannawatchserver /usr/local/wannawatch.server/logs
+chown wannawatchserver /usr/local/wannawatch.server/wannawatch.pid 2>/dev/null || true
+chmod 755 /usr/local/wannawatch.server
+chmod 755 /usr/local/wannawatch.server/logs
+
+/usr/bin/su -m wannawatchserver -c "/usr/local/bin/python3 -m uvicorn app.main:app --app-dir /usr/local/wannawatch.server/current/backend --host 0.0.0.0 --port 4000"
+
+/usr/sbin/daemon -f -o /tmp/wannawatch.daemon.test.log /usr/bin/su -m wannawatchserver -c "/usr/local/bin/python3 -m uvicorn app.main:app --app-dir /usr/local/wannawatch.server/current/backend --host 0.0.0.0 --port 4000"
+
+
+rm -f /usr/local/wannawatch.server/wannawatch.pid
