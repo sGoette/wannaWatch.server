@@ -25,3 +25,5 @@ async def post_settings(settings: List[Setting]):
             await db.execute("UPDATE settings SET value = ? WHERE key = ?", (setting.value, setting.key))
             await db.commit()
             await db.close()
+
+    return {"detail": "Settings updated successfully"}

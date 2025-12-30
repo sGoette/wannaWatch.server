@@ -67,6 +67,13 @@ async def upsert_movie(library_id: int, path: str):
     filename = os.path.basename(path)
     relative_path = os.path.relpath(path, await GET_MEDIA_ROOT_FOLDER())
     movie_title = filename.rsplit('.', 1)[0].title()
+
+    length_in_seconds: float = 0.0
+    width: int = 0
+    height: int = 0
+    codec: str = ""
+    format_name: str = ""
+
     try:
         metadata = await get_video_metadata(path)
         format_info = metadata.get("format", {})
@@ -80,15 +87,12 @@ async def upsert_movie(library_id: int, path: str):
         format_name = format_info.get("format_name", "")
     except Exception as e:
         print(f"[Scanner] Failed to get metadata for {path}: {e}")
-        duration = width = height = 0
-        codec = None
-        format = None
 
+    poster: Optional[str] = None
     try:
         poster = await generate_poster(path, length_in_seconds)
     except Exception as e:
         print(f"[Scanner] Failed to generate poster for {path}: {e}")
-        poster = None
 
     async with aiosqlite.connect(DB_PATH) as db:
         await db.execute("""
@@ -96,4 +100,3 @@ INSERT INTO movies (title, file_location, length_in_seconds, width, height, code
 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
 """, (movie_title, relative_path, length_in_seconds, width, height, codec, format_name, poster, library_id))
         await db.commit()
-        await db.close()

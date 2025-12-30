@@ -2,6 +2,7 @@ import asyncio
 import threading
 from app.scanner.jobs import ScanJob
 from app.scanner.scan import scan_libraries
+import traceback
 
 class ScannerWorker:
     def __init__(self):
@@ -29,5 +30,6 @@ class ScannerWorker:
                 await scan_libraries(job)
             except Exception as e:
                 print(f"[Scanner] Error: {e}")
+                traceback.print_exc()
             finally:
                 self.queue.task_done()
