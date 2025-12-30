@@ -50,7 +50,7 @@ chown -h wannawatchserver:wannawatchserver /usr/local/wannawatch.server/current
 
 # PYTHON Version of install.....
 cd /usr/local/wannawatch.server/releases
-fetch https://github.com/sGoette/wannaWatch.server/releases/download/v0.1.14/wannawatchserver-v0.1.14.tar.gz
-tar -xzf wannawatchserver-v0.1.14.tar.gz
-cd /usr/local/wannawatch.server/releases/v0.1.14
+fetch https://github.com/sGoette/wannaWatch.server/releases/download/v0.1.15/wannawatchserver-v0.1.15.tar.gz
+tar -xzf wannawatchserver-v0.1.15.tar.gz
+cd /usr/local/wannawatch.server/releases/v0.1.15
 sh install.sh
