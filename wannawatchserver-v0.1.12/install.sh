@@ -34,16 +34,30 @@ info "Linking current -> $RELEASE_DIR"
 ln -sfn "$RELEASE_DIR" "$CURRENT_LINK"
 
 # --- Install system packages ---
-info "Installing system packages (Python 3.11 stack + ffmpeg)"
+info "Installing system packages (python + ffmpeg)"
 # Keep this minimal; adjust package names if your jail uses a specific python version.
 pkg update -f
-pkg install -y \
-    python3 \
-    ffmpeg \
-    py311-fastapi \
-    py311-uvicorn \
-    py311-aiosqlite \
-    py311-pydantic
+pkg install -y python3.14 py311-pip ffmpeg
+
+# --- Setup python venv + install deps ---
+BACKEND_DIR="$CURRENT_LINK/backend"
+VENV_DIR="$BACKEND_DIR/.venv"
+REQ_FILE="$BACKEND_DIR/requirements.txt"
+
+[ -f "$REQ_FILE" ] || die "Missing $REQ_FILE"
+
+info "Creating virtualenv: $VENV_DIR"
+python3.14 -m venv "$VENV_DIR"
+
+# Activate and install requirements
+# shellcheck disable=SC1091
+. "$VENV_DIR/bin/activate"
+
+info "Upgrading pip"
+pip install -U pip setuptools wheel >/dev/null
+
+info "Installing backend requirements"
+pip install -r "$REQ_FILE"
 
 # --- Install rc.d script ---
 info "Installing rc.d script to /usr/local/etc/rc.d/wannawatch"
