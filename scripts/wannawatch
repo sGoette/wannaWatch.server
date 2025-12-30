@@ -17,11 +17,17 @@ log_file="${log_dir}/wannawatch.log"
 pidfile="/usr/local/wannawatch.server/wannawatch.pid"
 
 host="0.0.0.0"
-port="8000"
+port="4000"
 
 command="/usr/sbin/daemon"
 procname="/usr/local/bin/python3"
 command_args="-u wannawatchserver -p ${pidfile} -o ${log_file} /usr/local/bin/python3 -m uvicorn app.main:app --app-dir ${app_dir}/backend --host ${host} --port ${port}"
+
+command="/usr/sbin/daemon"
+procname="/usr/local/bin/python3"
+command_args="-p ${pidfile} -o ${log_file} \
+  /usr/bin/su -m wannawatchserver -c \
+  '/usr/local/bin/python3 -m uvicorn app.main:app --app-dir ${app_dir}/backend --host ${host} --port ${port}'"
 
 load_rc_config $name
 run_rc_command "$1"
