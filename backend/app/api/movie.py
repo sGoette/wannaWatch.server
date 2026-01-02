@@ -91,3 +91,14 @@ async def get_random_movie(movie_id: int):
     
     return dict(next_movie_row)
 
+@router.get("/next/{movie_id}", response_model=Movie)
+async def get_next_movie(movie_id: int):
+    async with aiosqlite.connect(DB_PATH) as db:
+        db.row_factory = aiosqlite.Row
+        async with db.execute("SELECT * FROM movies WHERE title > (SELECT title FROM movies WHERE id = ?) ORDER BY title ASC LIMIT 1", (movie_id)) as cursor:
+            next_movie_row = await cursor.fetchone()
+
+    if next_movie_row is None: 
+        raise HTTPException(status_code=404, detail="Movie not found")
+
+    return dict(next_movie_row)

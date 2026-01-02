@@ -44,21 +44,21 @@ info "Installing rc.d script to /usr/local/etc/rc.d/wannawatch"
 install -m 0555 "$CURRENT_LINK/wannawatch" /usr/local/etc/rc.d/wannawatch
 
 # --- Enable service ---
-#info "Enabling service (wannawatch_enable=YES)"
-#if command -v sysrc >/dev/null 2>&1; then
-#  sysrc wannawatch_enable="YES" >/dev/null
-#else
-#  # fallback: add if not present, otherwise replace
-#  if grep -q '^wannawatch_enable=' /etc/rc.conf; then
-#    sed -i '' 's/^wannawatch_enable=.*/wannawatch_enable="YES"/' /etc/rc.conf
-#  else
-#    echo 'wannawatch_enable="YES"' >> /etc/rc.conf
-#  fi
-#fi
+info "Enabling service (wannawatch_enable=YES)"
+if command -v sysrc >/dev/null 2>&1; then
+  sysrc wannawatch_enable="YES" >/dev/null
+else
+  # fallback: add if not present, otherwise replace
+  if grep -q '^wannawatch_enable=' /etc/rc.conf; then
+    sed -i '' 's/^wannawatch_enable=.*/wannawatch_enable="YES"/' /etc/rc.conf
+  else
+    echo 'wannawatch_enable="YES"' >> /etc/rc.conf
+  fi
+fi
 
 # --- Restart service ---
 info "Restarting service"
-#service wannawatch restart || service wannawatch start
+service wannawatch restart || service wannawatch start
 
 info "Done."
 echo "Current release: $CURRENT_LINK -> $(readlink $CURRENT_LINK)"
