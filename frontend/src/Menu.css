@@ -38,16 +38,16 @@
     color: aquamarine;
 }
 
-.menu .libraryMenuItem .editIcon {
+.menu .libraryMenuItem .editIcon, .menu .libraryMenuItem .scanIcon {
     opacity: 0;
     transition: all 0.4s;
 }
 
-.menu .libraryMenuItem:hover .editIcon {
+.menu .libraryMenuItem:hover .editIcon, .menu .libraryMenuItem:hover .scanIcon {
     opacity: 0.5;
 }
 
-.menu .libraryMenuItem .editIcon:hover {
+.menu .libraryMenuItem .editIcon:hover, .menu .libraryMenuItem .scanIcon:hover {
     opacity: 1;
 }
 
@@ -57,4 +57,9 @@
     justify-content: space-between;
     padding: 0;
     margin: 0;
+}
+
+.actionsWrapper {
+    display: flex;
+    gap: 1rem;
 }

@@ -1,12 +1,16 @@
 .movieCard {
+    display: flex;
+    flex-direction: column;
     margin: 1rem;
     cursor: pointer;
+    flex: 1 1 200px;
+    gap: 0.5rem
 }
 
 .movieCard .thumbnailImage {
     width: 200px;
     aspect-ratio: 27/40;
-    border-radius: 30px;
+    border-radius:  1rem;
     box-shadow: 8px 8px 12px rgba(0, 0, 0, 0.33);
     transition: all 0.4s;
     object-fit: cover;
@@ -20,21 +24,25 @@
 .movieCard .metaDataWrapper {
     display: flex;
     flex-direction: row;
+    gap: 1rem;
+    width: 200px;
 }
 
 .movieCard p.movieTitle {
     padding: 0;
     margin: 0;
-    margin-left: 15px;
     font-size: 12px;
     color: white;
     flex-grow: 1;
+    flex-shrink: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .movieCard p.movieDuration {
     padding: 0;
     margin: 0;
-    margin-right: 15px;
     font-size: 12px;
     color: rgba(255, 255, 255, 0.75);
     font-weight: bold;

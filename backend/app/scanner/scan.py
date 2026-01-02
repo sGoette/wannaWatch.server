@@ -7,6 +7,8 @@ from app.scanner.jobs import ScanJob
 from app.models.library import Library
 from app.scanner.media import get_video_metadata, generate_poster
 from app.scanner.cleanup import cleanup_orphaned_posters
+from app.scanner.metadata import fetch_movie_metadata
+from app.models.movie import Movie
 
 VIDEO_EXTENSIONS = {'.mp4', '.mkv', '.avi', '.mov', '.wmv', '.flv'}
 
@@ -28,16 +30,13 @@ async def scan_libraries(job: ScanJob):
         for library in libraries:
             await scan_library(library)
 
-        #Cleanup orphaned posters after scanning
-        await cleanup_orphaned_posters()
-
         
 async def scan_library(library: Library):
     MEDIA_ROOT_FOLDER = await GET_MEDIA_ROOT_FOLDER()
     library_media_folder = library.media_folder
     library_id = library.id
 
-    MEDIA_ROOT_FOLDER = Path(await GET_MEDIA_ROOT_FOLDER()).resolve()
+    MEDIA_ROOT_FOLDER = Path(MEDIA_ROOT_FOLDER).resolve()
     absolute_library_path = (MEDIA_ROOT_FOLDER / library_media_folder)
 
     print(f"[Scanner] Scanning library {library_id}: {absolute_library_path}")
@@ -51,11 +50,12 @@ async def scan_library(library: Library):
             relative_path = os.path.relpath(full_path, MEDIA_ROOT_FOLDER)
             async with aiosqlite.connect(DB_PATH) as db:
                 db.row_factory = aiosqlite.Row
-                cursor = await db.execute("SELECT * FROM movies WHERE file_location = ? AND library_id = ?", (relative_path, library_id))
-                existing_movie = await cursor.fetchone()
-                await cursor.close()
+                async with db.execute("SELECT * FROM movies WHERE file_location = ? AND library_id = ?", (relative_path, library_id)) as cursor:
+                    existing_movie_row = await cursor.fetchone()
 
-            if existing_movie:
+            if existing_movie_row:
+                existing_movie = Movie(**dict(existing_movie_row))
+                await fetch_movie_metadata(movie_id=existing_movie.id)
                 continue  # Movie already exists in the database
             
             await upsert_movie(library_id, full_path)
@@ -95,8 +95,12 @@ async def upsert_movie(library_id: int, path: str):
         print(f"[Scanner] Failed to generate poster for {path}: {e}")
 
     async with aiosqlite.connect(DB_PATH) as db:
-        await db.execute("""
+        async with db.execute("""
 INSERT INTO movies (title, file_location, length_in_seconds, width, height, codec, format, poster_file_name, library_id)
 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-""", (movie_title, relative_path, length_in_seconds, width, height, codec, format_name, poster, library_id))
+""", (movie_title, relative_path, length_in_seconds, width, height, codec, format_name, poster, library_id)) as cursor: 
+            new_movie_id = cursor.lastrowid
         await db.commit()
+
+        if new_movie_id:
+            await fetch_movie_metadata(movie_id=new_movie_id)

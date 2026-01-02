@@ -10,7 +10,7 @@ router = APIRouter(prefix="/api/collections")
 async def get_collections(library_id: int):
     async with aiosqlite.connect(DB_PATH) as db:
         db.row_factory = aiosqlite.Row
-        async with db.execute("SELECT * FROM collections WHERE library_id = ?", (library_id,)) as cursor: 
+        async with db.execute("SELECT * FROM collections WHERE library_id = ? ORDER BY title ASC", (library_id,)) as cursor: 
             rows = await cursor.fetchall()
 
         if rows is None:

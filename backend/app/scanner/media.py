@@ -50,7 +50,6 @@ async def generate_poster(path: str, length_in_seconds: float) -> str:
         "-y",
         "-ss", str(random_time),
         "-i", path,
-        #"-vf", "thumbnail,scale=320:-1",
         "-q:v", "2",
         "-frames:v", "1",
         str(poster_path)

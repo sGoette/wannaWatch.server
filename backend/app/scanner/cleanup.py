@@ -3,14 +3,18 @@ import aiosqlite
 from pathlib import Path
 from app.config import DB_PATH, GET_MEDIA_ROOT_FOLDER, POSTER_DIR
 from app.models.movie import Movie
+from app.models.collection import Collection
 
 async def cleanup_orphaned_posters():
     async with aiosqlite.connect(DB_PATH) as db:
         db.row_factory = aiosqlite.Row
-        async with db.execute("SELECT poster_file_name FROM movies WHERE poster_file_name IS NOT NULL") as cursor:
-            rows = await cursor.fetchall()
+        async with db.execute("SELECT poster_file_name FROM movies WHERE poster_file_name IS NOT NULL") as movie_poster_cursor:
+            movie_poster_rows = await movie_poster_cursor.fetchall()
 
-    poster_file_names = [str(row["poster_file_name"]) for row in rows if row["poster_file_name"]]
+        async with db.execute("SELECT poster_file_name FROM collections WHERE poster_file_name IS NOT NULL") as collection_poster_cursor: 
+            collection_poster_rows = await collection_poster_cursor.fetchall()
+
+    poster_file_names = [str(row["poster_file_name"]) for row in movie_poster_rows if row["poster_file_name"]] + [str(row["poster_file_name"]) for row in collection_poster_rows if row["poster_file_name"]]
     referenced = set()
 
     for poster_file_name in poster_file_names:
@@ -30,3 +34,36 @@ async def cleanup_orphaned_posters():
 
     if removed:
         print(f"[Scanner] Removed {removed} orphan posters")
+
+async def cleanup_orphaned_movies ():
+    async with aiosqlite.connect(DB_PATH) as db:
+        db.row_factory = aiosqlite.Row
+        async with db.execute("SELECT * FROM movies") as cursor:
+            movie_rows = await cursor.fetchall()
+
+            movies = [Movie(**dict(row)) for row in movie_rows]
+            MEDIA_ROOT_FOLDER = await GET_MEDIA_ROOT_FOLDER()
+
+            for movie in movies:
+                if not Path(MEDIA_ROOT_FOLDER, movie.file_location).resolve().is_file():
+                    async with aiosqlite.connect(DB_PATH) as db:
+                        db.row_factory = aiosqlite.Row
+                        await db.execute("DELETE FROM movies WHERE id = ?", (movie.id,))
+                        await db.commit()
+
+async def cleanup_orphaned_collections ():
+    async with aiosqlite.connect(DB_PATH) as db:
+        db.row_factory = aiosqlite.Row
+        async with db.execute("SELECT * FROM collections") as collection_cursor:
+            collection_rows = await collection_cursor.fetchall()
+
+            collections = [Collection(**dict(row)) for row in collection_rows]
+
+            for collection in collections:
+                async with db.execute("SELECT * FROM movies__collections WHERE collection_id = ?", (collection.id,)) as movie__collection_cursor:
+                    movie__collection_row = await movie__collection_cursor.fetchone()
+
+                if movie__collection_row is None:
+                    print(collection)
+                    await db.execute("DELETE FROM collections WHERE id = ?", (collection.id,))
+                    await db.commit()

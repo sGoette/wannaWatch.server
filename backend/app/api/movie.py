@@ -18,7 +18,7 @@ async def get_movie(movie_id: int):
     if movie is None: 
         raise HTTPException(status_code=404, detail="Movie not found")
     
-    return movie
+    return dict(movie)
 
 CHUNK_SIZE = 1024 * 1024  # 1MB per chunk
 
@@ -78,3 +78,16 @@ async def stream_movie(request: Request, movie_id: int):
 
         headers.update({ "Content-Length": str(file_size) })
         return StreamingResponse(iter_file_full(), headers=headers, media_type="video/mp4")
+    
+@router.get("/random/{movie_id}", response_model=Movie)
+async def get_random_movie(movie_id: int):
+    async with aiosqlite.connect(DB_PATH) as db:
+        db.row_factory = aiosqlite.Row
+        async with db.execute("SELECT * FROM movies WHERE id != ? ORDER BY RANDOM() LIMIT 1", (movie_id,)) as cursor:
+            next_movie_row = await cursor.fetchone()
+
+    if next_movie_row is None: 
+        raise HTTPException(status_code=404, detail="Movie not found")
+    
+    return dict(next_movie_row)
+

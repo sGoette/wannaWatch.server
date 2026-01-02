@@ -23,7 +23,7 @@ const CollectionList = (props: { currentLibraryId: number | null}) => {
 
     const loadMovies = () => {
         if(currentCollection) {
-            axios.get(`/api/collection/movies/${currentCollection.id}`)
+            axios.get(`/api/movies/collection/${currentCollection.id}`)
             .then(response => {
                 if (response.status === 200) {
                     setMovies(response.data)

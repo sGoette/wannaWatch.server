@@ -59,7 +59,6 @@ if FRONTEND_DIR.exists():
     
     @app.get("/{full_path:path}", include_in_schema=False)
     async def spa_fallback(request: Request, full_path: str):
-        print("HERE")
         if request.url.path.startswith("/api/"):
             return {"detail": "Not Found"}
         

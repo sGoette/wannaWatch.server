@@ -3,7 +3,7 @@ import threading
 from app.scanner.jobs import ScanJob
 from app.scanner.scan import scan_libraries
 import traceback
-
+from app.scanner.cleanup import cleanup_orphaned_posters, cleanup_orphaned_movies, cleanup_orphaned_collections
 class ScannerWorker:
     def __init__(self):
         self.queue: asyncio.Queue[ScanJob] = asyncio.Queue()
@@ -27,7 +27,17 @@ class ScannerWorker:
         while True:
             job = await self.queue.get()
             try:
+                # Scan all libraries for new movies
                 await scan_libraries(job)
+
+                #Cleanup orphaned movies in database -> Movies where the file is missing
+                await cleanup_orphaned_movies()
+
+                #Cleanup orphaned collections in database -> Collections with 0 movies
+                await cleanup_orphaned_collections()
+                
+                #Cleanup orphaned posters after scanning
+                await cleanup_orphaned_posters()
             except Exception as e:
                 print(f"[Scanner] Error: {e}")
                 traceback.print_exc()

@@ -5,7 +5,7 @@ import type { Collection } from "../../types/Collection"
 const CollectionCard = (props: { collection: Collection, setCurrentCollection: Dispatch<SetStateAction<Collection | null>>}) => {
     return (
         <div className="movieCard" onClick={() => { props.setCurrentCollection(props.collection)}}>
-            <img src={'api/movie/thumbnail/' + props.collection.thumbnail_file_name} alt={props.collection.title} className='thumbnailImage' />
+            <img src={'api/poster/' + props.collection.poster_file_name} alt={props.collection.title} className='thumbnailImage' />
             <div className='metaDataWrapper'>
                 <p className='movieTitle'>{props.collection.title}</p>
             </div>
