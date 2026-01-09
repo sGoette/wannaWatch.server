@@ -50,6 +50,9 @@ chmod +x "$RELEASE_DIR/install.sh"
 cp scripts/wannawatch "$RELEASE_DIR/wannawatch"
 chmod +x "$RELEASE_DIR/wannawatch"
 
+cp scripts/update.sh "$RELEASE_DIR/update.sh"
+chmod +x "$RELEASE_DIR/update.sh"
+
 tar -czf $BUILD_DIR/"$ARCHIVE_NAME" "$RELEASE_DIR"
 
 rm -rf "$RELEASE_DIR"

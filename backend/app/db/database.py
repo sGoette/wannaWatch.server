@@ -63,5 +63,22 @@ CREATE TABLE IF NOT EXISTS movies__collections (
     PRIMARY KEY (movie_id, collection_id)
 )
 """)
+    
+    await db.execute("""
+CREATE TABLE IF NOT EXISTS cast (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT,
+    poster_file_name TEXT,
+    role TEXT,
+    library_id INTEGER NOT NULL REFERENCES libraries(id) ON DELETE CASCADE
+)
+""")
+    await db.execute("""
+CREATE TABLE IF NOT EXISTS movies__cast (
+    movie_id INTEGER NOT NULL REFERENCES movies(id) ON DELETE CASCADE,
+    cast_id INTEGER NOT NULL REFERENCES cast(id) ON DELETE CASCADE,
+    PRIMARY KEY (movie_id, cast_id)
+)
+""")
     await db.commit()
     await db.close()

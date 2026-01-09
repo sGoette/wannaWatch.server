@@ -2,8 +2,10 @@ from fastapi import APIRouter, HTTPException, Request
 from fastapi.responses import StreamingResponse
 import aiosqlite
 from os import path
+from typing import List
 from app.config import DB_PATH
 from app.models.movie import Movie
+from app.models.cast import Cast
 from app.config import GET_MEDIA_ROOT_FOLDER
 
 router = APIRouter(prefix="/api/movie")
@@ -83,7 +85,7 @@ async def stream_movie(request: Request, movie_id: int):
 async def get_random_movie(movie_id: int):
     async with aiosqlite.connect(DB_PATH) as db:
         db.row_factory = aiosqlite.Row
-        async with db.execute("SELECT * FROM movies WHERE id != ? ORDER BY RANDOM() LIMIT 1", (movie_id,)) as cursor:
+        async with db.execute("SELECT * FROM movies WHERE id != ? AND library_id = (SELECT library_id FROM movies WHERE id = ?) ORDER BY RANDOM() LIMIT 1", (movie_id, movie_id)) as cursor:
             next_movie_row = await cursor.fetchone()
 
     if next_movie_row is None: 
@@ -95,10 +97,28 @@ async def get_random_movie(movie_id: int):
 async def get_next_movie(movie_id: int):
     async with aiosqlite.connect(DB_PATH) as db:
         db.row_factory = aiosqlite.Row
-        async with db.execute("SELECT * FROM movies WHERE title > (SELECT title FROM movies WHERE id = ?) ORDER BY title ASC LIMIT 1", (movie_id)) as cursor:
+        async with db.execute("SELECT * FROM movies WHERE title > (SELECT title FROM movies WHERE id = ?) AND library_id = (SELECT library_id from movies WHERE id = ?) ORDER BY title ASC LIMIT 1", (movie_id, movie_id)) as cursor:
             next_movie_row = await cursor.fetchone()
 
     if next_movie_row is None: 
         raise HTTPException(status_code=404, detail="Movie not found")
 
     return dict(next_movie_row)
+
+@router.get("/{movie_id}/cast", response_model=List[Cast])
+async def get_cast(movie_id: int):
+    async with aiosqlite.connect(DB_PATH) as db:
+        db.row_factory = aiosqlite.Row
+        async with db.execute("""
+SELECT cast.* 
+FROM cast 
+JOIN movies__cast mc ON mc.cast_id = cast.id 
+WHERE mc.movie_id = ?
+
+""", (movie_id,)) as cursor:
+            rows = await cursor.fetchall()
+
+    if not rows:
+        return []
+    
+    return [dict(row) for row in rows]

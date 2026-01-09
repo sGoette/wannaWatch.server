@@ -10,6 +10,7 @@ from app.api.movies import router as movies_router
 from app.api.collections import router as collections_router
 from app.api.library import router as library_router
 from app.api.libraries import router as libraries_router
+from app.api.cast import router as cast_router
 from app.api.poster import router as poster_router
 from app.api.filesystem import router as filesystem_router
 from app.api.scan import router as scan_router
@@ -17,8 +18,6 @@ from app.api.scan import router as scan_router
 from app.db.database import init_db
 from app.scanner.worker import ScannerWorker
 from app.config import FRONTEND_DIR, INDEX_HTML, DB_PATH
-
-print(DB_PATH)
 
 scanner = ScannerWorker()
 
@@ -43,6 +42,7 @@ app.include_router(movies_router)
 app.include_router(collections_router)
 app.include_router(library_router)
 app.include_router(libraries_router)
+app.include_router(cast_router)
 app.include_router(poster_router)
 app.include_router(filesystem_router)
 app.include_router(scan_router)
