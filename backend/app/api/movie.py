@@ -110,11 +110,11 @@ async def get_cast(movie_id: int):
     async with aiosqlite.connect(DB_PATH) as db:
         db.row_factory = aiosqlite.Row
         async with db.execute("""
-SELECT cast.* 
-FROM cast 
-JOIN movies__cast mc ON mc.cast_id = cast.id 
+SELECT c.*
+FROM cast c
+JOIN movies__cast mc ON mc.cast_id = c.id 
 WHERE mc.movie_id = ?
-
+ORDER BY c.name ASC
 """, (movie_id,)) as cursor:
             rows = await cursor.fetchall()
 
