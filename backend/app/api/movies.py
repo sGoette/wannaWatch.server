@@ -29,7 +29,7 @@ SELECT m.*
 FROM movies m
 JOIN movies__collections mc ON mc.movie_id = m.id
 WHERE mc.collection_id = ?
-ORDER BY n.title ASC
+ORDER BY m.title ASC
 """, (collection_id,)) as cursor:
             rows = await cursor.fetchall()
 
