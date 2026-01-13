@@ -50,9 +50,9 @@ chown -h wannawatchserver:wannawatchserver /usr/local/wannawatch.server/current
 
 # PYTHON Version of install.....
 cd /usr/local/wannawatch.server/releases
-fetch https://github.com/sGoette/wannaWatch.server/releases/download/v0.1.26/wannawatchserver-v0.1.26.tar.gz
-tar -xzf wannawatchserver-v0.1.26.tar.gz
-cd /usr/local/wannawatch.server/releases/v0.1.26
+fetch https://github.com/sGoette/wannaWatch.server/releases/download/v0.1.27/wannawatchserver-v0.1.27.tar.gz
+tar -xzf wannawatchserver-v0.1.27.tar.gz
+cd /usr/local/wannawatch.server/releases/v0.1.27
 sh install.sh
 
 /usr/local/bin/python3 -m uvicorn app.main:app --app-dir /usr/local/wannawatch.server/current/backend --host 0.0.0.0 --port 4000

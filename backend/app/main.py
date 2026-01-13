@@ -15,6 +15,8 @@ from app.api.poster import router as poster_router
 from app.api.filesystem import router as filesystem_router
 from app.api.scan import router as scan_router
 
+from app.api.test import router as scrape_router
+
 from app.db.database import init_db
 from app.scanner.worker import ScannerWorker
 from app.config import FRONTEND_DIR, INDEX_HTML, DB_PATH
@@ -46,6 +48,8 @@ app.include_router(cast_router)
 app.include_router(poster_router)
 app.include_router(filesystem_router)
 app.include_router(scan_router)
+
+app.include_router(scrape_router)
 
 if FRONTEND_DIR.exists():
     app.mount("/frontend", StaticFiles(directory=str(FRONTEND_DIR), html=True), name="frontend")

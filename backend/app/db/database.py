@@ -44,7 +44,8 @@ CREATE TABLE IF NOT EXISTS movies (
     codec TEXT,
     format TEXT,
     poster_file_name TEXT,
-    library_id INTEGER NOT NULL REFERENCES libraries(id) ON DELETE CASCADE
+    library_id INTEGER NOT NULL REFERENCES libraries(id) ON DELETE CASCADE,
+    metadata_last_updated INTEGER
 )
 """)
 

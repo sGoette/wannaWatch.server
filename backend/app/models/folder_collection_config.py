@@ -1,12 +1,16 @@
 from pydantic import BaseModel
-from typing import List
 from pathlib import Path
+from typing import Optional
 
 class FolderCollectionConfig(BaseModel):
     subfoldersAreCollections: bool
     subfoldersAreCast: bool
-    folderCast: List[str]
+    folderCast: list[str]
+    useScraper: bool
+    potential_collections: list[str]
+
 
 class FolderCollectionConfig_Path(BaseModel):
     data: FolderCollectionConfig
-    path: Path
+    currentPath: Path
+    childPath: Optional[Path]

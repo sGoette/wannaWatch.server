@@ -11,7 +11,7 @@ def get_file_hash(path: str) -> str:
     #TODO: Add date based hashing, so it's not file dependant
     return hashlib.md5(path.encode("utf-8")).hexdigest()
 
-async def get_video_metadata(path: str) -> dict:
+async def get_video_file_metadata(path: str) -> dict:
     """
     Uses ffprobe to fetch metadata: duration, width, height, codec, etc.
     Returns a dict.

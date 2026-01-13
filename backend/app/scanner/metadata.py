@@ -1,145 +1,79 @@
 import aiosqlite
 from pathlib import Path
-from typing import Optional, Tuple
-import json as jsone
-import shutil
-from typing import List
+import importlib.util
+from typing import Optional
+from Levenshtein import ratio
 
-from app.models.folder_collection_config import FolderCollectionConfig, FolderCollectionConfig_Path
-from app.config import DB_PATH, GET_MEDIA_ROOT_FOLDER, POSTER_DIR
+from app.config import GET_MEDIA_ROOT_FOLDER, DB_PATH
 from app.models.movie import Movie
-from app.scanner.media import get_file_hash
-from app.models.collection import Collection
-from app.models.cast import Cast, Role
+from app.models.metadata import Metadata, SearchResult
+from app.scanner.media import generate_poster
 
-async def fetch_movie_metadata(movie_id: int):
-    async with aiosqlite.connect(DB_PATH) as db:
-        db.row_factory = aiosqlite.Row
-        async with db.execute("SELECT * FROM movies WHERE id = ?", (movie_id,)) as cursor:
-            row = await cursor.fetchone()
+from app.scanner.metadata_functions.folder_collection_config import find_folder_collection_config
+from app.scanner.metadata_functions.set_subfolder_as_collection import set_subfolder_as_collection, add_collection_to_movie
+from app.scanner.metadata_functions.set_subfolder_as_cast import set_subfolder_as_cast
+from app.scanner.metadata_functions.get_poster_from_url import get_poster_from_url
+from app.scanner.metadata_functions.add_actor_to_movie import add_actor_to_movie
 
-    if row:
-        movie = Movie(**dict(row))
-        library_id = movie.library_id
-        absolute_movie_path = Path(await GET_MEDIA_ROOT_FOLDER()).resolve() / movie.file_location
+async def fetch_movie_metadata(movie: Movie, absolute_path: str):
+    absolute_movie_path = Path(await GET_MEDIA_ROOT_FOLDER()).resolve() / movie.file_location
 
-        configs = await find_folder_collection_config(absolute_movie_path)
+    configs = await find_folder_collection_config(absolute_movie_path)
 
-        COLLECTION_POSTER_CANDIDATE_NAMES = ['folder' 'cover', 'poster', 'thumb', 'thumbnail', 'collection']
+    for config in configs:
+        if config.data.subfoldersAreCollections:
+            await set_subfolder_as_collection(folder_config=config, library_id=movie.library_id, movie_id=movie.id)
 
-        for config in configs:
-            if config.data.subfoldersAreCollections:
-                await set_subfolder_as_collection(folder_config=config, library_id=library_id, movie_id=movie_id, poster_candidate_names=COLLECTION_POSTER_CANDIDATE_NAMES)
+        if config.data.subfoldersAreCast and config.childPath:
+            current_folder_title = config.childPath.name.title()
+            await set_subfolder_as_cast(cast_name=current_folder_title, path=config.childPath, library_id=movie.library_id, movie_id=movie.id, poster_candidate_names=[current_folder_title.lower()])
 
-            if config.data.subfoldersAreCast:
-                current_folder_title = config.path.name.title()
-                await set_subfolder_as_cast(cast_name=current_folder_title, path=config.path, library_id=library_id, movie_id=movie_id, poster_candidate_names=[current_folder_title.lower()])
-
+        if config.childPath:
             for additional_cast in config.data.folderCast:
-                await set_subfolder_as_cast(cast_name=additional_cast, path=config.path, library_id=library_id, movie_id=movie_id, poster_candidate_names=[additional_cast.lower()])
+                await set_subfolder_as_cast(cast_name=additional_cast, path=config.childPath, library_id=movie.library_id, movie_id=movie.id, poster_candidate_names=[additional_cast.lower()])
 
-async def find_folder_collection_config(start_path: Path) -> List[FolderCollectionConfig_Path]:
-    MEDIA_ROOT_FOLDER = await GET_MEDIA_ROOT_FOLDER()
-    current = start_path.parent if start_path.is_file() else start_path
-    last_folder = None
-    configs: List[FolderCollectionConfig_Path] = []
+        if config.data.useScraper:
+            scraper_spec = importlib.util.spec_from_file_location("scraper", config.currentPath / "__wannawatch.py")
+            if scraper_spec and scraper_spec.loader:
+                scraper = importlib.util.module_from_spec(spec=scraper_spec)
+                scraper_spec.loader.exec_module(scraper)
 
-    while True:
-        candidate = current / '__wannawatch.json'
-        if candidate.is_file():
-            with candidate.open("r", encoding="utf-8") as f:
-                data = jsone.load(f)
-                entry = FolderCollectionConfig_Path(data=FolderCollectionConfig(**data), path=last_folder or current)
-                configs.append(entry)
-        
-        if current == MEDIA_ROOT_FOLDER:
-            break
-        if current.parent == current:
-            break
+                search_results: list[SearchResult] = scraper.search(title=movie.title)
 
-        last_folder = current
-        current = current.parent
-        
-    return configs
+                if len(search_results) > 0:
+                    best_result: SearchResult = max(search_results, key=lambda r: ratio(r.name, movie.title))
+                    
+                    if best_result:
+                        metadata: Optional[Metadata] = scraper.fetch_metadata(search_result=search_results[0], potential_collections=config.data.potential_collections)
 
-def get_poster_from_folder(folder_path: Path, poster_candidate_names:list[str]) -> Optional[str]:
-    IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png", ".gif", ".bmp", ".webp"}
-    for path in Path(folder_path).iterdir():
-        if path.is_file() and path.suffix.lower() in IMAGE_EXTENSIONS and path.stem.lower() in poster_candidate_names:
-            poster_file_name = f"{get_file_hash(str(path))}{path.suffix}"
-            shutil.copy2(path, POSTER_DIR / poster_file_name)
-            return poster_file_name
-    
-    return None
+                        if metadata:
+                            if metadata.poster_url:
+                                poster_file_name = get_poster_from_url(url=metadata.poster_url)
+                            else: 
+                                poster_file_name = movie.poster_file_name
+                            async with aiosqlite.connect(DB_PATH) as db:
+                                await db.execute("UPDATE movies SET title = ?, poster_file_name = ?, metadata_last_updated = unixepoch() WHERE id = ?", (metadata.movie_title, poster_file_name, movie.id))
+                                await db.commit()
+                                
+                                movie.title = metadata.movie_title or movie.title
+                                movie.poster_file_name = poster_file_name
 
-async def set_subfolder_as_collection(folder_config: FolderCollectionConfig_Path, library_id: int, movie_id: int, poster_candidate_names: list[str]):
-    current_folder_title = folder_config.path.name.title()
-    async with aiosqlite.connect(DB_PATH) as db:
-        db.row_factory = aiosqlite.Row
-        async with db.execute("SELECT * FROM collections WHERE title = ? AND library_id = ?", (current_folder_title, library_id)) as cursor:
-            collection_row = await cursor.fetchone()
+                            for actor in metadata.cast:
+                                await add_actor_to_movie(actor=actor, movie=movie)
 
-    if collection_row: #Collection already exists
-        collection = Collection(**dict(collection_row))
-        collection_id = collection.id
+                            for collection_title in metadata.collections:
+                                await add_collection_to_movie(collection_title=collection_title, movie=movie)
+                            
 
-        if collection.poster_file_name == "":
-            poster_file_name = get_poster_from_folder(folder_path=folder_config.path, poster_candidate_names=poster_candidate_names) or ""
-            async with aiosqlite.connect(DB_PATH) as db:
-                await db.execute("UPDATE collections SET poster_file_name = ? WHERE id = ?", (poster_file_name, collection_id))
-                await db.commit()
+                            
 
-    else: #Collection doesn't exist jet
-        poster_file_name = get_poster_from_folder(folder_path=folder_config.path, poster_candidate_names=poster_candidate_names) or ""
-        async with aiosqlite.connect(DB_PATH) as db:
-            db.row_factory = aiosqlite.Row
-            async with db.execute("INSERT INTO collections (title, poster_file_name, library_id) VALUES (?, ?, ?)", (current_folder_title, poster_file_name, library_id)) as cursor:
-                collection_id = cursor.lastrowid
-                await db.commit()
-
-    if collection_id:
-        async with aiosqlite.connect(DB_PATH) as db:
-            db.row_factory = aiosqlite.Row
-            async with db.execute("SELECT * FROM movies__collections WHERE movie_id = ? AND collection_id = ?", (movie_id, collection_id)) as select_cursor: 
-                movie__collection_map = await select_cursor.fetchone()
-            
-            if not movie__collection_map:
-                await db.execute("INSERT INTO movies__collections (movie_id, collection_id) VALUES (?, ?)", (movie_id, collection_id))
-
-            await db.commit()
-
-async def set_subfolder_as_cast(cast_name: str, path: Path, library_id: int, movie_id: int, poster_candidate_names: list[str]):
-    async with aiosqlite.connect(DB_PATH) as db:
-        db.row_factory = aiosqlite.Row
-        async with db.execute("SELECT * FROM cast WHERE name = ? AND library_id = ?", (cast_name, library_id)) as cursor:
-            cast_row = await cursor.fetchone()
-
-    if cast_row: #Cast already exists
-        cast = Cast(**dict(cast_row))
-        cast_id = cast.id
-
-        if cast.poster_file_name == "":
-            poster_file_name = get_poster_from_folder(folder_path=path, poster_candidate_names=poster_candidate_names) or ""
-            async with aiosqlite.connect(DB_PATH) as db:
-                await db.execute("UPDATE cast SET poster_file_name = ? WHERE id = ?", (poster_file_name, cast_id))
-                await db.commit()
-
-    else: #Cas doesn't exist jet
-        poster_file_name = poster_file_name = get_poster_from_folder(folder_path=path, poster_candidate_names=poster_candidate_names) or ""
-
-        async with aiosqlite.connect(DB_PATH) as db:
-            db.row_factory = aiosqlite.Row
-            async with db.execute("INSERT INTO cast (name, poster_file_name, role, library_id) VALUES (?, ?, ?, ?)", (cast_name, poster_file_name, Role.ACTOR, library_id)) as cursor:
-                cast_id = cursor.lastrowid
-                await db.commit()
-
-    if cast_id:
-        async with aiosqlite.connect(DB_PATH) as db:
-            db.row_factory = aiosqlite.Row
-            async with db.execute("SELECT * FROM movies__cast WHERE movie_id = ? AND cast_id = ? ", (movie_id, cast_id)) as select_cursor:
-                movie__cast_map = await select_cursor.fetchone()
-
-            if not movie__cast_map:
-                await db.execute("INSERT INTO movies__cast (movie_id, cast_id) VALUES (?, ?)", (movie_id, cast_id))
-
-            await db.commit()
+    if movie.poster_file_name is None:
+        try:
+            if movie.length_in_seconds:
+                poster_from_stil = await generate_poster(path=absolute_path, length_in_seconds=movie.length_in_seconds)
+                async with aiosqlite.connect(DB_PATH) as db:
+                    await db.execute("UPDATE movies SET poster_file_name = ?, metadata_last_updated = unixepoch() WHERE id = ?", (poster_from_stil, movie.id))
+                    await db.commit()
+        except Exception as e:
+            print(f"[Scanner] Failed to generate poster for {absolute_path}: {e}")
+                        

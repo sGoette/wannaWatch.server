@@ -1,7 +1,6 @@
 import aiosqlite
 from pathlib import Path
 
-
 BASE_DIR = Path(__file__).parent.parent.parent.parent.resolve() #wannawatch.server folder
 POSTER_DIR = BASE_DIR / "data/posters"
 DB_PATH = BASE_DIR / "data/db/database.sqlite"
@@ -22,3 +21,7 @@ async def GET_MEDIA_ROOT_FOLDER() -> str:
             return str(MEDIA_ROOT_FOLDER[0])
         
         else: exit(1)
+
+COLLECTION_POSTER_CANDIDATE_NAMES = ['folder' 'cover', 'poster', 'thumb', 'thumbnail', 'collection']
+
+VIDEO_EXTENSIONS = {'.mp4', '.mkv', '.avi', '.mov', '.wmv', '.flv'}

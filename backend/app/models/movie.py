@@ -3,7 +3,7 @@ from typing import Optional
 
 class Movie(BaseModel):
     id: int
-    title: Optional[str]
+    title: str
     file_location: str
     length_in_seconds: Optional[float]
     width: Optional[int]
@@ -12,3 +12,4 @@ class Movie(BaseModel):
     format: Optional[str]
     poster_file_name: Optional[str]
     library_id: int
+    metadata_last_updated: Optional[int]
