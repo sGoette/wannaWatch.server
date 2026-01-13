@@ -1,3 +1,7 @@
 {
-    "subfoldersAreCollections": true
+    "subfoldersAreCollections": false,
+    "subfoldersAreCast": false,
+    "folderCast": [],
+    "useScraper": false,
+    "potential_collections": []
 }
