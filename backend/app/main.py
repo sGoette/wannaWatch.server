@@ -1,3 +1,7 @@
+from app.logging_setup import setup_logging
+from app.config import LOG_DIR
+setup_logging(log_path=LOG_DIR, level='INFO')
+
 from fastapi import FastAPI, Request
 from contextlib import asynccontextmanager
 from fastapi.responses import FileResponse
@@ -19,7 +23,10 @@ from app.api.test import router as scrape_router
 
 from app.db.database import init_db
 from app.scanner.worker import ScannerWorker
-from app.config import FRONTEND_DIR, INDEX_HTML, DB_PATH
+from app.config import FRONTEND_DIR, INDEX_HTML
+
+import logging
+log = logging.getLogger(__name__)
 
 scanner = ScannerWorker()
 
@@ -27,13 +34,13 @@ scanner = ScannerWorker()
 async def lifespan(api: FastAPI):
     # Startup
     await init_db()
-    print("Database initialized ✅")
+    log.info("Database initialized ✅")
     scanner.start()
     app.state.scanner = scanner
-    print("Scanner worker started ✅")
+    log.info("Scanner worker started ✅")
     yield
     # Shutdown (optional)
-    print("App shutdown")
+    log.info("App shutdown")
 
 app = FastAPI(title="WannaWatch.server", lifespan=lifespan)
 
@@ -72,6 +79,7 @@ if FRONTEND_DIR.exists():
             if candidate.exists() and candidate.is_file():
                 return FileResponse(candidate)
         except Exception:
+            log.exception("Can not get frontend file {candidate}")
             pass
 
         if INDEX_HTML.exists():

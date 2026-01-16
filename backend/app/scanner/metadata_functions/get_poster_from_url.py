@@ -3,6 +3,9 @@ from pathlib import Path
 import mimetypes
 from typing import Optional
 
+import logging
+log = logging.getLogger(__name__)
+
 from app.scanner.media import get_file_hash
 from app.config import POSTER_DIR
 
@@ -19,6 +22,6 @@ def get_poster_from_url(url: str) -> Optional[str]:
 
         target.write_bytes(response.content)
         return poster_file_name
-    except Exception as e:
-        print(e)
+    except Exception:
+        log.exception("Error loading poster from URL: ")
         return None

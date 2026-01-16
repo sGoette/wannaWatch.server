@@ -2,6 +2,9 @@ import os
 import aiosqlite
 from typing import Optional
 
+import logging
+log = logging.getLogger(__name__)
+
 from app.config import DB_PATH, GET_MEDIA_ROOT_FOLDER
 from app.scanner.media import get_video_file_metadata
 from app.models.movie import Movie
@@ -43,15 +46,15 @@ async def add_movie_to_db(library_id: int, absolute_path: str) -> Optional[Movie
         height = int(video_steam.get("height", 0))
         codec = video_steam.get("codec_name", "")
         format_name = format_info.get("format_name", "")
-    except Exception as e:
-        print(f"[Scanner] Failed to get metadata for {absolute_path}: {e}")
+    except Exception:
+        log.exception(f"[Scanner] Failed to get metadata for {absolute_path}")
 
     async with aiosqlite.connect(DB_PATH) as db:
         db.row_factory = aiosqlite.Row
         async with db.execute("""
 INSERT INTO movies (title, file_location, length_in_seconds, width, height, codec, format, poster_file_name, library_id)
 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-""", (movie_title, relative_path, length_in_seconds, width, height, codec, format_name, "", library_id)) as cursor: 
+""", (movie_title, relative_path, length_in_seconds, width, height, codec, format_name, None, library_id)) as cursor: 
             new_movie_id = cursor.lastrowid
         await db.commit()
 

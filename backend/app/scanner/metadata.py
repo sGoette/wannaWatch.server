@@ -4,6 +4,9 @@ import importlib.util
 from typing import Optional
 from Levenshtein import ratio
 
+import logging
+log = logging.getLogger(__name__)
+
 from app.config import GET_MEDIA_ROOT_FOLDER, DB_PATH
 from app.models.movie import Movie
 from app.models.metadata import Metadata, SearchResult
@@ -74,6 +77,6 @@ async def fetch_movie_metadata(movie: Movie, absolute_path: str):
                 async with aiosqlite.connect(DB_PATH) as db:
                     await db.execute("UPDATE movies SET poster_file_name = ?, metadata_last_updated = unixepoch() WHERE id = ?", (poster_from_stil, movie.id))
                     await db.commit()
-        except Exception as e:
-            print(f"[Scanner] Failed to generate poster for {absolute_path}: {e}")
+        except Exception:
+            log.exception(f"[Scanner] Failed to generate poster for {absolute_path}")
                         

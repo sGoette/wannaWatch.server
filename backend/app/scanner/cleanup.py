@@ -1,9 +1,11 @@
-import os
 import aiosqlite
 from pathlib import Path
 from app.config import DB_PATH, GET_MEDIA_ROOT_FOLDER, POSTER_DIR
 from app.models.movie import Movie
 from app.models.collection import Collection
+
+import logging
+log = logging.getLogger(__name__)
 
 async def cleanup_orphaned_posters():
     async with aiosqlite.connect(DB_PATH) as db:
@@ -32,11 +34,11 @@ async def cleanup_orphaned_posters():
             try:
                 entry.unlink()
                 removed += 1
-            except Exception as e:
-                print(f"[Scanner] Could not delete orphan poster {entry}: {e}")
+            except Exception:
+                log.exception(f"[Scanner] Could not delete orphan poster {entry}:")
 
     if removed:
-        print(f"[Scanner] Removed {removed} orphan posters")
+        log.info(f"[Scanner] Removed {removed} orphan posters")
 
 async def cleanup_orphaned_movies ():
     async with aiosqlite.connect(DB_PATH) as db:
@@ -67,6 +69,5 @@ async def cleanup_orphaned_collections ():
                     movie__collection_row = await movie__collection_cursor.fetchone()
 
                 if movie__collection_row is None:
-                    print(collection)
                     await db.execute("DELETE FROM collections WHERE id = ?", (collection.id,))
                     await db.commit()

@@ -2,8 +2,12 @@ import asyncio
 import threading
 from app.scanner.jobs import ScanJob
 from app.scanner.scan import scan_libraries
-import traceback
+
+import logging
+log = logging.getLogger(__name__)
+
 from app.scanner.cleanup import cleanup_orphaned_posters, cleanup_orphaned_movies, cleanup_orphaned_collections
+
 class ScannerWorker:
     def __init__(self):
         self.queue: asyncio.Queue[ScanJob] = asyncio.Queue()
@@ -38,8 +42,7 @@ class ScannerWorker:
                 
                 #Cleanup orphaned posters after scanning
                 await cleanup_orphaned_posters()
-            except Exception as e:
-                print(f"[Scanner] Error: {e}")
-                traceback.print_exc()
+            except Exception:
+                log.exception(f"Scanner Error: ")
             finally:
                 self.queue.task_done()

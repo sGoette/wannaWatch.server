@@ -7,6 +7,7 @@ DB_PATH = BASE_DIR / "data/db/database.sqlite"
 
 BACKEND_DIR = Path(__file__).resolve().parents[1]      # backend/app -> backend
 REPO_ROOT   = BACKEND_DIR.parent                       # backend -> repo root
+LOG_DIR     = BASE_DIR / "data/wannawatch.log"
 
 FRONTEND_DIR = REPO_ROOT / "frontend"                  # repo_root/frontend
 INDEX_HTML = FRONTEND_DIR / "index.html"

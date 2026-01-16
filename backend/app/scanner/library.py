@@ -6,6 +6,9 @@ from app.models.library import Library
 from app.scanner.movie import process_movie
 from app.scanner.metadata import fetch_movie_metadata
 
+import logging
+log = logging.getLogger(__name__)
+
 async def scan_library(library: Library):
     MEDIA_ROOT_FOLDER = await GET_MEDIA_ROOT_FOLDER()
     library_media_folder = library.media_folder
@@ -13,7 +16,7 @@ async def scan_library(library: Library):
     MEDIA_ROOT_FOLDER = Path(MEDIA_ROOT_FOLDER).resolve()
     absolute_library_path = (MEDIA_ROOT_FOLDER / library_media_folder)
 
-    print(f"[Scanner] Scanning library {library.id}: {absolute_library_path}")
+    log.info(f"[Scanner] Scanning library {library.id}: {absolute_library_path}")
 
     for dirpath, _, filenames in os.walk(absolute_library_path):
         for filename in filenames:
