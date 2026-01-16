@@ -46,5 +46,5 @@ def setup_logging(log_path: Path, level: str = "INFO") -> None:
             # "sqlalchemy.engine": {"level": "INFO", "propagate": True},
         },
     }
-
+    logging.getLogger("uvicorn.access").setLevel(logging.WARNING)
     logging.config.dictConfig(config)

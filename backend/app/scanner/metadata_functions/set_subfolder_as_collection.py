@@ -1,10 +1,12 @@
 import aiosqlite
-
+from pathlib import Path
 from app.models.folder_collection_config import FolderCollectionConfig_Path
 from app.config import DB_PATH, COLLECTION_POSTER_CANDIDATE_NAMES
 from app.models.collection import Collection
 from app.models.movie import Movie
-from app.scanner.metadata_functions.get_poster_from_folder import get_poster_from_folder
+from app.scanner.metadata_functions.get_poster_from_folder import get_poster_from_folder, get_poster_from_file_name
+from app.models.collection import CollectionData
+from app.scanner.metadata_functions.get_poster_from_url import get_poster_from_url
 
 async def set_subfolder_as_collection(folder_config: FolderCollectionConfig_Path, library_id: int, movie_id: int):
     if folder_config.childPath:
@@ -46,15 +48,20 @@ async def set_subfolder_as_collection(folder_config: FolderCollectionConfig_Path
 
 
 
-async def add_collection_to_movie(collection_title: str, movie: Movie):
+async def add_collection_to_movie(collection_data: CollectionData, movie: Movie):
     async with aiosqlite.connect(DB_PATH) as db:
         db.row_factory = aiosqlite.Row
 
-        async with db.execute("SELECT * FROM collections WHERE title = ? AND library_id = ?", (collection_title, movie.library_id)) as select_cursor1: 
+        if collection_data.poster_url:
+            poster_file_name = get_poster_from_url(collection_data.poster_url)
+        elif collection_data.poster_file_name and Path(collection_data.poster_file_name).is_file(): #TODO: Check if file is an image and if it is inside the media dir
+            poster_file_name = get_poster_from_file_name(Path(collection_data.poster_file_name))
+
+        async with db.execute("SELECT * FROM collections WHERE title = ? AND library_id = ?", (collection_data.title, movie.library_id)) as select_cursor1: 
             collection_row = await select_cursor1.fetchone()
 
         if collection_row is None: #Collection doesn't exist jet
-            async with db.execute("INSERT INTO collections (title, library_id) VALUES (?, ?)", (collection_title, movie.library_id)) as insert_cursor:
+            async with db.execute("INSERT INTO collections (title, poster_file_name, library_id) VALUES (?, ?)", (collection_data.title, poster_file_name, movie.library_id)) as insert_cursor:
                 collection_id = insert_cursor.lastrowid
                 await db.commit()
 
@@ -67,6 +74,10 @@ async def add_collection_to_movie(collection_title: str, movie: Movie):
             collection = Collection(**collection_row)
 
         if collection:
+            if collection.poster_file_name is None and poster_file_name:
+                await db.execute("UPDATE collections SET poster_file_name = ? WHERE id = ?", (poster_file_name, collection.id))
+                await db.commit()
+                
             async with db.execute("SELECT * FROM movies__collections WHERE movie_id = ? AND collection_id = ?", (movie.id, collection.id)) as movies__collection_cursor: 
                 movie__collection_row = await movies__collection_cursor.fetchone()
             

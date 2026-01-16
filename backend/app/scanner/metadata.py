@@ -54,6 +54,7 @@ async def fetch_movie_metadata(movie: Movie, absolute_path: str):
                                 poster_file_name = get_poster_from_url(url=metadata.poster_url)
                             else: 
                                 poster_file_name = movie.poster_file_name
+                                
                             async with aiosqlite.connect(DB_PATH) as db:
                                 await db.execute("UPDATE movies SET title = ?, poster_file_name = ?, metadata_last_updated = unixepoch() WHERE id = ?", (metadata.movie_title, poster_file_name, movie.id))
                                 await db.commit()
@@ -64,12 +65,9 @@ async def fetch_movie_metadata(movie: Movie, absolute_path: str):
                             for actor in metadata.cast:
                                 await add_actor_to_movie(actor=actor, movie=movie)
 
-                            for collection_title in metadata.collections:
-                                await add_collection_to_movie(collection_title=collection_title, movie=movie)
+                            for collection in metadata.collections:
+                                await add_collection_to_movie(collection_data=collection, movie=movie)
                             
-
-                            
-
     if movie.poster_file_name is None:
         try:
             if movie.length_in_seconds:
