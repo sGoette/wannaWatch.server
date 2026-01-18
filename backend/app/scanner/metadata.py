@@ -14,7 +14,7 @@ from app.scanner.media import generate_poster
 from app.models.collection import CollectionData
 
 from app.scanner.metadata_functions.folder_collection_config import find_folder_collection_config
-from backend.app.scanner.metadata_functions.add_collection_to_movie import add_collection_to_movie
+from app.scanner.metadata_functions.add_collection_to_movie import add_collection_to_movie
 from app.scanner.metadata_functions.set_subfolder_as_cast import set_subfolder_as_cast
 from app.scanner.metadata_functions.get_poster_from_url import get_poster_from_url
 from app.scanner.metadata_functions.add_actor_to_movie import add_actor_to_movie
