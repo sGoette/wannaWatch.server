@@ -22,8 +22,9 @@ async def scan_library(library: Library):
         for filename in filenames:
             if not os.path.splitext(filename)[1].lower() in VIDEO_EXTENSIONS:
                 continue
-
-            movie = await process_movie(dirpath=dirpath, filename=filename, library_id=library.id)
+            
+            absolte_file_path = (Path(dirpath).resolve() / filename)
+            movie = await process_movie(absolute_file_path=absolte_file_path, library_id=library.id)
 
             if movie and movie.metadata_last_updated is None:
-                await fetch_movie_metadata(movie=movie, absolute_path=os.path.join(dirpath, filename)) #separate scanning and updating metadata. fist scan all files, then fetch the metadata
+                await fetch_movie_metadata(movie=movie, absolute_path=absolte_file_path) #separate scanning and updating metadata. fist scan all files, then fetch the metadata

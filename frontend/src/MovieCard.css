@@ -3,7 +3,7 @@
     flex-direction: column;
     margin: 1rem;
     cursor: pointer;
-    flex: 1 1 200px;
+    flex: 0 1 200px;
     gap: 0.5rem
 }
 

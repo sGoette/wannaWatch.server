@@ -122,3 +122,15 @@ ORDER BY c.name ASC
         return []
     
     return [dict(row) for row in rows]
+
+@router.get("/{movie_id}/extras", response_model=List[Movie])
+async def get_extras(movie_id: int):
+    async with aiosqlite.connect(DB_PATH) as db:
+        db.row_factory = aiosqlite.Row
+        async with db.execute("SELECT * FROM movies WHERE is_extra_of_movie_id = ? ORDER BY title ASC", (movie_id,)) as cursor: 
+            rows = await cursor.fetchall()
+
+    if not rows: 
+        return []
+    
+    return [dict(row) for row in rows]

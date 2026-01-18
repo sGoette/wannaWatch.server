@@ -1,6 +1,6 @@
 from app.logging_setup import setup_logging
 from app.config import LOG_DIR
-setup_logging(log_path=LOG_DIR, level='INFO')
+setup_logging(log_path=LOG_DIR, level='WARNING')
 
 from fastapi import FastAPI, Request
 from contextlib import asynccontextmanager
@@ -85,3 +85,4 @@ if FRONTEND_DIR.exists():
         if INDEX_HTML.exists():
             return FileResponse(INDEX_HTML)
         return {"detail": "Frontend not built (index.html missing)"}
+    

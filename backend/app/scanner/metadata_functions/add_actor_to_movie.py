@@ -3,7 +3,7 @@ import aiosqlite
 from app.config import DB_PATH
 from app.models.movie import Movie
 from app.models.metadata import Actor
-from app.models.cast import Cast, Role
+from app.models.cast import Cast, ROLE
 from app.scanner.metadata_functions.get_poster_from_url import get_poster_from_url
 
 async def add_actor_to_movie(actor: Actor, movie: Movie):
@@ -14,7 +14,7 @@ async def add_actor_to_movie(actor: Actor, movie: Movie):
             cast_row = await select_cursor1.fetchone()
             
         if cast_row is None:
-            async with db.execute("INSERT INTO cast (name, role, library_id) VALUES (?, ?, ?)", (actor.name, Role.ACTOR, movie.library_id)) as insert_cursor:
+            async with db.execute("INSERT INTO cast (name, role, library_id) VALUES (?, ?, ?)", (actor.name, ROLE.ACTOR, movie.library_id)) as insert_cursor:
                 cast_id = insert_cursor.lastrowid
                 await db.commit()
                 

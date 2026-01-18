@@ -7,25 +7,35 @@ from Levenshtein import ratio
 import logging
 log = logging.getLogger(__name__)
 
-from app.config import GET_MEDIA_ROOT_FOLDER, DB_PATH
+from app.config import DB_PATH
 from app.models.movie import Movie
 from app.models.metadata import Metadata, SearchResult
 from app.scanner.media import generate_poster
+from app.models.collection import CollectionData
 
 from app.scanner.metadata_functions.folder_collection_config import find_folder_collection_config
-from app.scanner.metadata_functions.set_subfolder_as_collection import set_subfolder_as_collection, add_collection_to_movie
+from backend.app.scanner.metadata_functions.add_collection_to_movie import add_collection_to_movie
 from app.scanner.metadata_functions.set_subfolder_as_cast import set_subfolder_as_cast
 from app.scanner.metadata_functions.get_poster_from_url import get_poster_from_url
 from app.scanner.metadata_functions.add_actor_to_movie import add_actor_to_movie
+from app.scanner.metadata_functions.get_extra_type import get_extra_type
+from app.scanner.metadata_functions.get_main_movie_of_extra import get_main_movie_of_extra
 
-async def fetch_movie_metadata(movie: Movie, absolute_path: str):
-    absolute_movie_path = Path(await GET_MEDIA_ROOT_FOLDER()).resolve() / movie.file_location
+async def fetch_movie_metadata(movie: Movie, absolute_path: Path):
+    extra_type, main_movie_file_name = get_extra_type(absolute_path)
+    if extra_type and main_movie_file_name:
+        main_movie = await get_main_movie_of_extra(absolute_file_path=absolute_path, main_movie_file_name=main_movie_file_name, library_id=movie.library_id)
+        if main_movie:
+            async with aiosqlite.connect(DB_PATH) as db:
+                await db.execute("UPDATE movies SET is_extra_of_movie_id = ?, extra_type = ? WHERE id = ?", (main_movie.id, extra_type, movie.id))
+                await db.commit()
 
-    configs = await find_folder_collection_config(absolute_movie_path)
+    configs = await find_folder_collection_config(absolute_path)
 
     for config in configs:
-        if config.data.subfoldersAreCollections:
-            await set_subfolder_as_collection(folder_config=config, library_id=movie.library_id, movie_id=movie.id)
+        if config.data.subfoldersAreCollections and config.childPath:
+            collection_data = CollectionData(title=config.childPath.name.title(), poster_folder=config.childPath)
+            await add_collection_to_movie(collection_data=collection_data, movie=movie)
 
         if config.data.subfoldersAreCast and config.childPath:
             current_folder_title = config.childPath.name.title()
@@ -68,13 +78,11 @@ async def fetch_movie_metadata(movie: Movie, absolute_path: str):
                             for collection in metadata.collections:
                                 await add_collection_to_movie(collection_data=collection, movie=movie)
                             
-    if movie.poster_file_name is None:
+    if movie.poster_file_name is None and movie.length_in_seconds:
         try:
-            if movie.length_in_seconds:
-                poster_from_stil = await generate_poster(path=absolute_path, length_in_seconds=movie.length_in_seconds)
-                async with aiosqlite.connect(DB_PATH) as db:
-                    await db.execute("UPDATE movies SET poster_file_name = ?, metadata_last_updated = unixepoch() WHERE id = ?", (poster_from_stil, movie.id))
-                    await db.commit()
+            poster_from_stil = await generate_poster(path=absolute_path, length_in_seconds=movie.length_in_seconds)
+            async with aiosqlite.connect(DB_PATH) as db:
+                await db.execute("UPDATE movies SET poster_file_name = ?, metadata_last_updated = unixepoch() WHERE id = ?", (poster_from_stil, movie.id))
+                await db.commit()
         except Exception:
             log.exception(f"[Scanner] Failed to generate poster for {absolute_path}")
-                        

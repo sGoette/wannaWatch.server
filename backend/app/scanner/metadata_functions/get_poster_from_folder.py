@@ -13,7 +13,10 @@ def get_poster_from_folder(folder_path: Path, candidate_names:list[str]) -> Opti
     
     return None
 
-def get_poster_from_file_name(file_name: Path):
-    poster_file_name = f"{get_file_hash(str(file_name))}{file_name.suffix}"
-    shutil.copy2(file_name, POSTER_DIR / poster_file_name)
-    return poster_file_name
+def get_poster_from_file_name(file_name: Path) -> Optional[str]:
+    if file_name.is_file():
+        poster_file_name = f"{get_file_hash(str(file_name))}{file_name.suffix}"
+        shutil.copy2(file_name, POSTER_DIR / poster_file_name)
+        return poster_file_name
+    
+    return None

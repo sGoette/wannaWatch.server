@@ -45,7 +45,11 @@ CREATE TABLE IF NOT EXISTS movies (
     format TEXT,
     poster_file_name TEXT,
     library_id INTEGER NOT NULL REFERENCES libraries(id) ON DELETE CASCADE,
-    metadata_last_updated INTEGER
+    metadata_last_updated INTEGER,
+    is_extra_of_movie_id INTEGER REFERENCES movies(id),
+    extra_type TEXT,
+    is_part_of_movie_id INTEGER REFERENCES movies(id),
+    part_number INTEGER
 )
 """)
 
@@ -81,5 +85,6 @@ CREATE TABLE IF NOT EXISTS movies__cast (
     PRIMARY KEY (movie_id, cast_id)
 )
 """)
+
     await db.commit()
     await db.close()

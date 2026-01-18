@@ -10,7 +10,7 @@ router = APIRouter(prefix="/api/movies")
 async def get_movies(library_id: int):
     async with aiosqlite.connect(DB_PATH) as db:
         db.row_factory = aiosqlite.Row
-        async with db.execute("SELECT * FROM movies WHERE library_id = ? ORDER BY title ASC", (library_id,)) as cursor:
+        async with db.execute("SELECT * FROM movies WHERE is_extra_of_movie_id IS NULL AND library_id = ? ORDER BY title ASC", (library_id,)) as cursor:
             rows = await cursor.fetchall()
 
     if not rows:
