@@ -17,7 +17,7 @@ from app.scanner.metadata_functions.folder_collection_config import find_folder_
 from app.scanner.metadata_functions.add_collection_to_movie import add_collection_to_movie
 from app.scanner.metadata_functions.set_subfolder_as_person import set_subfolder_as_person
 from app.scanner.metadata_functions.get_poster_from_url import get_poster_from_url
-from backend.app.scanner.metadata_functions.add_person_to_movie import add_person_to_movie
+from app.scanner.metadata_functions.add_person_to_movie import add_person_to_movie
 from app.scanner.metadata_functions.get_extra_type import get_extra_type
 from app.scanner.metadata_functions.get_main_movie_of_extra import get_main_movie_of_extra
 

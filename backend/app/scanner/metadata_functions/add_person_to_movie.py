@@ -3,7 +3,7 @@ import aiosqlite
 from app.config import DB_PATH
 from app.models.movie import Movie
 from app.models.metadata import PersonMetadata
-from backend.app.models.person import Person, ROLE
+from app.models.person import Person, ROLE
 from app.scanner.metadata_functions.get_poster_from_url import get_poster_from_url
 
 async def add_person_to_movie(person_metadata: PersonMetadata, movie: Movie):

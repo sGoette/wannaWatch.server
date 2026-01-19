@@ -2,7 +2,7 @@ import aiosqlite
 from pathlib import Path
 
 from app.config import DB_PATH
-from backend.app.models.person import Person, ROLE
+from app.models.person import Person, ROLE
 from app.scanner.metadata_functions.get_poster_from_folder import get_poster_from_folder
 
 async def set_subfolder_as_person(person_name: str, path: Path, library_id: int, movie_id: int, poster_candidate_names: list[str]):
