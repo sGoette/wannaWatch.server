@@ -7,7 +7,7 @@ class ROLE(StrEnum):
     DIRECTOR = 'DIRECTOR'
 
 
-class Cast(BaseModel):
+class Person(BaseModel):
     id: int
     name: str
     poster_file_name: Optional[str]

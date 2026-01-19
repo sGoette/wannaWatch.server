@@ -7,7 +7,7 @@ class SearchResult(BaseModel):
     id: str
     name: str
 
-class Actor(BaseModel):
+class PersonMetadata(BaseModel):
     name: str
     poster_url: Optional[str] = None
 
@@ -17,7 +17,7 @@ class Metadata(BaseModel):
     tags: list[str] = []
     collections: list[str] = []
     poster_url: Optional[str] = None
-    cast: list[Actor] = []
+    people: list[PersonMetadata] = []
 
 def search(title: str) -> list[SearchResult]:
     return findResults(search_name=title)

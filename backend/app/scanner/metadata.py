@@ -15,9 +15,9 @@ from app.models.collection import CollectionData
 
 from app.scanner.metadata_functions.folder_collection_config import find_folder_collection_config
 from app.scanner.metadata_functions.add_collection_to_movie import add_collection_to_movie
-from app.scanner.metadata_functions.set_subfolder_as_cast import set_subfolder_as_cast
+from app.scanner.metadata_functions.set_subfolder_as_person import set_subfolder_as_person
 from app.scanner.metadata_functions.get_poster_from_url import get_poster_from_url
-from app.scanner.metadata_functions.add_actor_to_movie import add_actor_to_movie
+from backend.app.scanner.metadata_functions.add_person_to_movie import add_person_to_movie
 from app.scanner.metadata_functions.get_extra_type import get_extra_type
 from app.scanner.metadata_functions.get_main_movie_of_extra import get_main_movie_of_extra
 
@@ -37,13 +37,13 @@ async def fetch_movie_metadata(movie: Movie, absolute_path: Path):
             collection_data = CollectionData(title=config.childPath.name.title(), poster_folder=config.childPath)
             await add_collection_to_movie(collection_data=collection_data, movie=movie)
 
-        if config.data.subfoldersAreCast and config.childPath:
+        if config.data.subfoldersArePeople and config.childPath:
             current_folder_title = config.childPath.name.title()
-            await set_subfolder_as_cast(cast_name=current_folder_title, path=config.childPath, library_id=movie.library_id, movie_id=movie.id, poster_candidate_names=[current_folder_title.lower()])
+            await set_subfolder_as_person(person_name=current_folder_title, path=config.childPath, library_id=movie.library_id, movie_id=movie.id, poster_candidate_names=[current_folder_title.lower()])
 
         if config.childPath:
-            for additional_cast in config.data.folderCast:
-                await set_subfolder_as_cast(cast_name=additional_cast, path=config.childPath, library_id=movie.library_id, movie_id=movie.id, poster_candidate_names=[additional_cast.lower()])
+            for additional_person in config.data.folderPeople:
+                await set_subfolder_as_person(person_name=additional_person, path=config.childPath, library_id=movie.library_id, movie_id=movie.id, poster_candidate_names=[additional_person.lower()])
 
         if config.data.useScraper:
             scraper_spec = importlib.util.spec_from_file_location("scraper", config.currentPath / "__wannawatch.py")
@@ -72,8 +72,8 @@ async def fetch_movie_metadata(movie: Movie, absolute_path: Path):
                                 movie.title = metadata.movie_title or movie.title
                                 movie.poster_file_name = poster_file_name
 
-                            for actor in metadata.cast:
-                                await add_actor_to_movie(actor=actor, movie=movie)
+                            for person_metadata in metadata.people:
+                                await add_person_to_movie(person_metadata=person_metadata, movie=movie)
 
                             for collection in metadata.collections:
                                 await add_collection_to_movie(collection_data=collection, movie=movie)

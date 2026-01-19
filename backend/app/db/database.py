@@ -70,7 +70,7 @@ CREATE TABLE IF NOT EXISTS movies__collections (
 """)
     
     await db.execute("""
-CREATE TABLE IF NOT EXISTS cast (
+CREATE TABLE IF NOT EXISTS people (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name TEXT,
     poster_file_name TEXT,
@@ -79,10 +79,10 @@ CREATE TABLE IF NOT EXISTS cast (
 )
 """)
     await db.execute("""
-CREATE TABLE IF NOT EXISTS movies__cast (
+CREATE TABLE IF NOT EXISTS movies__people (
     movie_id INTEGER NOT NULL REFERENCES movies(id) ON DELETE CASCADE,
-    cast_id INTEGER NOT NULL REFERENCES cast(id) ON DELETE CASCADE,
-    PRIMARY KEY (movie_id, cast_id)
+    person_id INTEGER NOT NULL REFERENCES people(id) ON DELETE CASCADE,
+    PRIMARY KEY (movie_id, person_id)
 )
 """)
 

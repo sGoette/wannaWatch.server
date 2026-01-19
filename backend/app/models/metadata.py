@@ -3,7 +3,7 @@ from typing import Optional
 
 from app.models.collection import CollectionData
 
-class Actor(BaseModel):
+class PersonMetadata(BaseModel):
     name: str
     poster_url: Optional[str] = None
     
@@ -13,7 +13,7 @@ class Metadata(BaseModel):
     tags: list[str] = []
     collections: list[CollectionData] = []
     poster_url: Optional[str] = None
-    cast: list[Actor] = []
+    people: list[PersonMetadata] = []
 
 class SearchResult(BaseModel):
     id: str

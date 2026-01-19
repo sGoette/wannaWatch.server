@@ -4,8 +4,8 @@ from typing import Optional
 
 class FolderCollectionConfig(BaseModel):
     subfoldersAreCollections: bool
-    subfoldersAreCast: bool
-    folderCast: list[str]
+    subfoldersArePeople: bool
+    folderPeople: list[str]
     useScraper: bool
     potential_collections: list[str]
 

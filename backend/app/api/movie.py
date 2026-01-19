@@ -3,9 +3,10 @@ from fastapi.responses import StreamingResponse
 import aiosqlite
 from os import path
 from typing import List
+
 from app.config import DB_PATH
 from app.models.movie import Movie
-from app.models.cast import Cast
+from app.models.person import Person
 from app.config import GET_MEDIA_ROOT_FOLDER
 
 router = APIRouter(prefix="/api/movie")
@@ -105,16 +106,16 @@ async def get_next_movie(movie_id: int):
 
     return dict(next_movie_row)
 
-@router.get("/{movie_id}/cast", response_model=List[Cast])
-async def get_cast(movie_id: int):
+@router.get("/{movie_id}/people", response_model=List[Person])
+async def get_people(movie_id: int):
     async with aiosqlite.connect(DB_PATH) as db:
         db.row_factory = aiosqlite.Row
         async with db.execute("""
-SELECT c.*
-FROM cast c
-JOIN movies__cast mc ON mc.cast_id = c.id 
-WHERE mc.movie_id = ?
-ORDER BY c.name ASC
+SELECT p.*
+FROM people p
+JOIN movies__people mp ON mp.person_id = p.id 
+WHERE mp.movie_id = ?
+ORDER BY p.name ASC
 """, (movie_id,)) as cursor:
             rows = await cursor.fetchall()
 

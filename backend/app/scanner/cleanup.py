@@ -16,10 +16,10 @@ async def cleanup_orphaned_posters():
         async with db.execute("SELECT poster_file_name FROM collections WHERE poster_file_name IS NOT NULL") as collection_poster_cursor: 
             collection_poster_rows = await collection_poster_cursor.fetchall()
 
-        async with db.execute("SELECT poster_file_name FROM cast WHERE poster_file_name IS NOT NULL") as cast_poster_cursor:
-            cast_poster_rows = await cast_poster_cursor.fetchall()
+        async with db.execute("SELECT poster_file_name FROM people WHERE poster_file_name IS NOT NULL") as people_poster_cursor:
+            people_poster_rows = await people_poster_cursor.fetchall()
 
-    poster_file_names = [str(row["poster_file_name"]) for row in movie_poster_rows if row["poster_file_name"]] + [str(row["poster_file_name"]) for row in collection_poster_rows if row["poster_file_name"]] + [str(row["poster_file_name"]) for row in cast_poster_rows if row["poster_file_name"]]
+    poster_file_names = [str(row["poster_file_name"]) for row in movie_poster_rows if row["poster_file_name"]] + [str(row["poster_file_name"]) for row in collection_poster_rows if row["poster_file_name"]] + [str(row["poster_file_name"]) for row in people_poster_rows if row["poster_file_name"]]
     referenced = set()
 
     for poster_file_name in poster_file_names:
