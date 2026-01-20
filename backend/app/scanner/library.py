@@ -9,7 +9,7 @@ from app.scanner.metadata import fetch_movie_metadata
 import logging
 log = logging.getLogger(__name__)
 
-async def scan_library(library: Library):
+async def scan_library(library: Library, ignore_existing_metadata: bool):
     MEDIA_ROOT_FOLDER = await GET_MEDIA_ROOT_FOLDER()
     library_media_folder = library.media_folder
 
@@ -26,5 +26,5 @@ async def scan_library(library: Library):
             absolte_file_path = (Path(dirpath).resolve() / filename)
             movie = await process_movie(absolute_file_path=absolte_file_path, library_id=library.id)
 
-            if movie and movie.metadata_last_updated is None:
+            if movie and (movie.metadata_last_updated is None or ignore_existing_metadata is True):
                 await fetch_movie_metadata(movie=movie, absolute_path=absolte_file_path) #separate scanning and updating metadata. fist scan all files, then fetch the metadata

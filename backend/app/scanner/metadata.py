@@ -24,7 +24,7 @@ from app.scanner.metadata_functions.get_main_movie_of_extra import get_main_movi
 async def fetch_movie_metadata(movie: Movie, absolute_path: Path):
     extra_type, main_movie_file_name = get_extra_type(absolute_path)
     if extra_type and main_movie_file_name:
-        main_movie = await get_main_movie_of_extra(absolute_file_path=absolute_path, main_movie_file_name=main_movie_file_name, library_id=movie.library_id)
+        main_movie = await get_main_movie_of_extra(absolute_file_path=absolute_path, main_movie_file_name=main_movie_file_name, extra_movie=movie, library_id=movie.library_id)
         if main_movie:
             async with aiosqlite.connect(DB_PATH) as db:
                 await db.execute("UPDATE movies SET is_extra_of_movie_id = ?, extra_type = ? WHERE id = ?", (main_movie.id, extra_type, movie.id))
@@ -41,9 +41,8 @@ async def fetch_movie_metadata(movie: Movie, absolute_path: Path):
             current_folder_title = config.childPath.name.title()
             await set_subfolder_as_person(person_name=current_folder_title, path=config.childPath, library_id=movie.library_id, movie_id=movie.id, poster_candidate_names=[current_folder_title.lower()])
 
-        if config.childPath:
-            for additional_person in config.data.folderPeople:
-                await set_subfolder_as_person(person_name=additional_person, path=config.childPath, library_id=movie.library_id, movie_id=movie.id, poster_candidate_names=[additional_person.lower()])
+        for additional_person in config.data.folderPeople:
+            await set_subfolder_as_person(person_name=additional_person, path=config.currentPath, library_id=movie.library_id, movie_id=movie.id, poster_candidate_names=[additional_person.lower()])
 
         if config.data.useScraper:
             scraper_spec = importlib.util.spec_from_file_location("scraper", config.currentPath / "__wannawatch.py")

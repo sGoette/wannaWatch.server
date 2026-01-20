@@ -39,5 +39,6 @@ async def add_person_to_movie(person_metadata: PersonMetadata, movie: Movie):
 
                 if poster_file_name:
                     await db.execute("UPDATE people SET poster_file_name = ? WHERE id = ?", (poster_file_name, person.id))
+                    await db.commit()
 
         

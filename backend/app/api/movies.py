@@ -29,6 +29,7 @@ SELECT m.*
 FROM movies m
 JOIN movies__collections mc ON mc.movie_id = m.id
 WHERE mc.collection_id = ?
+AND m.is_extra_of_movie_id IS NULL
 ORDER BY m.title ASC
 """, (collection_id,)) as cursor:
             rows = await cursor.fetchall()

@@ -22,6 +22,6 @@ async def scan_libraries(job: ScanJob):
         libraries = [Library(**dict(row)) for row in rows]
 
         for library in libraries:
-            await scan_library(library)
+            await scan_library(library=library, ignore_existing_metadata=job.ignore_existing_metadata)
 
 
