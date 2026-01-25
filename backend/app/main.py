@@ -1,11 +1,12 @@
 from app.logging_setup import setup_logging
-from app.config import LOG_DIR
-setup_logging(log_path=LOG_DIR, level='WARNING')
+from app.config import LOG_FILE
+setup_logging(log_path=LOG_FILE, level='WARNING')
 
 from fastapi import FastAPI, Request
 from contextlib import asynccontextmanager
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
+from zeroconf.asyncio import AsyncZeroconf
 
 from app.api.health import router as health_router
 from app.api.settings import router as settings_router
@@ -25,8 +26,12 @@ from app.db.database import init_db
 from app.scanner.worker import ScannerWorker
 from app.config import FRONTEND_DIR, INDEX_HTML
 
+from app.services.bonjour import _local_ip, build_service_info
+
 import logging
 log = logging.getLogger(__name__)
+
+LOG_FILE.write_text("")
 
 scanner = ScannerWorker()
 
@@ -35,12 +40,25 @@ async def lifespan(api: FastAPI):
     # Startup
     await init_db()
     log.info("Database initialized ✅")
+
     scanner.start()
     app.state.scanner = scanner
     log.info("Scanner worker started ✅")
+
+    zeroconf = AsyncZeroconf()
+    host_ip = _local_ip()
+    info = build_service_info(host_ip=host_ip)
+    app.state.zeroconf = zeroconf
+    app.state.service_info = info
+
+    await zeroconf.async_register_service(info)
+    print(f"✅ Bonjour advertised")
+    
     yield
-    # Shutdown (optional)
-    log.info("App shutdown")
+
+    await zeroconf.async_unregister_service(info)
+    await zeroconf.async_close()
+    print("🛑 Bonjour service stopped")
 
 app = FastAPI(title="WannaWatch.server", lifespan=lifespan)
 

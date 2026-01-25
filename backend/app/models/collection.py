@@ -13,3 +13,6 @@ class CollectionData(BaseModel):
     poster_file_name: Optional[str] = None
     poster_folder: Optional[Path] = None
     poster_url: Optional[str] = None
+
+class CollectionWithStats(Collection):
+    movie_count: int
