@@ -2,7 +2,7 @@ import socket
 from zeroconf import ServiceInfo
 
 SERVICE_TYPE = "_wannawatch._tcp.local."
-SERVICE_NAME = "WannaWatch Server 1234._wannawatch._tcp.local." #WannaWatchServer is the name shown. TODO: Set this to the server name, when it's stored in the DB
+SERVICE_NAME = "WannaWatch Server 6969._wannawatch._tcp.local." #WannaWatchServer is the name shown. TODO: Set this to the server name, when it's stored in the DB
 
 def _local_ip() -> str:
     """
@@ -31,5 +31,5 @@ def build_service_info() -> ServiceInfo:
         addresses=[socket.inet_aton(host_ip)],
         port=4000,
         properties=props,
-        server="wannawatch_server_1234.local.",  # can be any stable hostname; not strictly required TODO: Set this to something individual so people can have more than one server connected. 
+        server="wannawatch_server_6969.local.",  # can be any stable hostname; not strictly required TODO: Set this to something individual so people can have more than one server connected. 
     )
