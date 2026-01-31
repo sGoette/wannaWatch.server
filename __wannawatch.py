@@ -2,6 +2,11 @@ from pydantic import BaseModel
 from typing import Optional
 import requests
 from urllib.parse import quote
+from pathlib import Path
+import re
+
+import logging
+log = logging.getLogger(__name__)
 
 class SearchResult(BaseModel):
     id: str
@@ -23,9 +28,16 @@ def search(title: str) -> list[SearchResult]:
     return findResults(search_name=title)
 
 def findResults(search_name: str) -> list[SearchResult]:
-    search_response = requests.get("https://scraper.url/search/" + quote(search_name))
-    search_response.raise_for_status()
-    #build search result for every response element and return them
+    results: list[SearchResult] = []
+
+    try:
+        search_response = requests.get("https://scraper.url/search/" + quote(search_name))
+        search_response.raise_for_status()
+        #build search result for every response element and return them
+
+    except Exception:
+        log.warning(f"Unable to search for metadata for {search_name}")
+    
     return []
 
 def fetch_metadata(search_result: SearchResult, potential_collections: list[str]) -> Metadata:

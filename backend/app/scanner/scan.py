@@ -23,5 +23,3 @@ async def scan_libraries(job: ScanJob):
 
         for library in libraries:
             await scan_library(library=library, ignore_existing_metadata=job.ignore_existing_metadata)
-
-

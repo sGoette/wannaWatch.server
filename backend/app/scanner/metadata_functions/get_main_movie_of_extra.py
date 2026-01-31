@@ -27,7 +27,6 @@ AND extra_type IS NULL
             main_movie_row = await cursor.fetchone()
 
             if main_movie_row:
-                log.warning(Movie(**main_movie_row))
                 return Movie(**main_movie_row)
 
             else:
@@ -35,7 +34,6 @@ AND extra_type IS NULL
                     file_path = Path(MEDIA_ROOT_FOLDER).joinpath(f"{main_movie_file_location}{ext}")
                     
                     if file_path.is_file():
-                        log.warning(file_path)
                         movie = await process_movie(absolute_file_path=file_path.absolute(), library_id=library_id)
 
                         return movie

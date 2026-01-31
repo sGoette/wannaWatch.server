@@ -50,7 +50,7 @@ async def fetch_movie_metadata(movie: Movie, absolute_path: Path):
                 scraper = importlib.util.module_from_spec(spec=scraper_spec)
                 scraper_spec.loader.exec_module(scraper)
 
-                search_results: list[SearchResult] = scraper.search(title=movie.title)
+                search_results: list[SearchResult] = scraper.search(title=absolute_path.stem)
 
                 if len(search_results) > 0:
                     best_result: SearchResult = max(search_results, key=lambda r: ratio(r.name, movie.title))
