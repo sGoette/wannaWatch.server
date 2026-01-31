@@ -26,7 +26,7 @@ from app.db.database import init_db
 from app.scanner.worker import ScannerWorker
 from app.config import FRONTEND_DIR, INDEX_HTML
 
-from app.services.bonjour import _local_ip, build_service_info
+from app.services.bonjour import build_service_info
 
 import logging
 log = logging.getLogger(__name__)
@@ -46,13 +46,12 @@ async def lifespan(api: FastAPI):
     log.info("Scanner worker started ✅")
 
     zeroconf = AsyncZeroconf()
-    host_ip = _local_ip()
-    info = build_service_info(host_ip=host_ip)
+    info = build_service_info()
     app.state.zeroconf = zeroconf
     app.state.service_info = info
 
     await zeroconf.async_register_service(info)
-    print(f"✅ Bonjour advertised")
+    print("✅ Bonjour advertised")
     
     yield
 

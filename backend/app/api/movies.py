@@ -38,3 +38,22 @@ ORDER BY m.title ASC
         return []
 
     return [dict(row) for row in rows]    
+
+@router.get("/person/{person_id}", response_model=List[Movie])
+async def get_movies_of_person(person_id):
+    async with aiosqlite.connect(DB_PATH) as db: 
+        db.row_factory = aiosqlite.Row
+        async with db.execute("""
+SELECT m.*
+FROM movies m
+JOIN movies__people mp ON mp.movie_id = m.id
+WHERE mp.person_id = ?
+AND m.is_extra_of_movie_id IS NULL
+ORDER BY m.title ASC
+""", (person_id,)) as cursor:
+            rows = await cursor.fetchall()
+
+    if not rows:
+        return []
+
+    return [dict(row) for row in rows]    
