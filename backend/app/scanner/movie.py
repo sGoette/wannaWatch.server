@@ -16,7 +16,7 @@ async def process_movie(absolute_file_path: Path, library_id: int) -> Optional[M
 
     async with aiosqlite.connect(DB_PATH) as db:
         db.row_factory = aiosqlite.Row
-        async with db.execute("SELECT * FROM movies WHERE file_location = ? AND library_id = ?", (relative_path.encode('utf-8'), library_id)) as cursor:
+        async with db.execute("SELECT * FROM movies WHERE file_location = ? AND library_id = ?", (relative_path, library_id)) as cursor:
             existing_movie_row = await cursor.fetchone()
 
     if not existing_movie_row:
@@ -54,7 +54,7 @@ async def add_movie_to_db(library_id: int, absolute_file_path: Path) -> Optional
         async with db.execute("""
 INSERT INTO movies (title, file_location, length_in_seconds, width, height, codec, format, library_id)
 VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-""", (movie_title, str(relative_path).encode('utf-8'), length_in_seconds, width, height, codec, format_name, library_id)) as cursor: 
+""", (movie_title, str(relative_path), length_in_seconds, width, height, codec, format_name, library_id)) as cursor: 
             new_movie_id = cursor.lastrowid
         await db.commit()
 

@@ -50,9 +50,9 @@ async def cleanup_orphaned_movies ():
             MEDIA_ROOT_FOLDER = await GET_MEDIA_ROOT_FOLDER()
 
             for movie in movies:
-                if not Path(MEDIA_ROOT_FOLDER, movie.file_location).resolve().is_file():
+                if not Path(MEDIA_ROOT_FOLDER, movie.file_location).resolve().is_file(): #We formated the file_location to utf-8, might be a problem here
                     async with aiosqlite.connect(DB_PATH) as db:
-                        db.row_factory = aiosqlite.Row
+                        db.row_factory = aiosqlite.Row #TODO: add forein keys, so other objects gets deleted as well. 
                         await db.execute("DELETE FROM movies WHERE id = ?", (movie.id,))
                         await db.commit()
 
