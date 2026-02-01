@@ -45,37 +45,40 @@ async def fetch_movie_metadata(movie: Movie, absolute_path: Path):
             await set_subfolder_as_person(person_name=additional_person, path=config.currentPath, library_id=movie.library_id, movie_id=movie.id, poster_candidate_names=[additional_person.lower()])
 
         if config.data.useScraper:
-            scraper_spec = importlib.util.spec_from_file_location("scraper", config.currentPath / "__wannawatch.py")
-            if scraper_spec and scraper_spec.loader:
-                scraper = importlib.util.module_from_spec(spec=scraper_spec)
-                scraper_spec.loader.exec_module(scraper)
+            try:
+                scraper_spec = importlib.util.spec_from_file_location("scraper", config.currentPath / "__wannawatch.py")
+                if scraper_spec and scraper_spec.loader:
+                    scraper = importlib.util.module_from_spec(spec=scraper_spec)
+                    scraper_spec.loader.exec_module(scraper)
 
-                search_results: list[SearchResult] = scraper.search(title=absolute_path.stem)
+                    search_results: list[SearchResult] = scraper.search(title=absolute_path.stem)
 
-                if len(search_results) > 0:
-                    best_result: SearchResult = max(search_results, key=lambda r: ratio(r.name, movie.title))
-                    
-                    if best_result:
-                        metadata: Optional[Metadata] = scraper.fetch_metadata(search_result=search_results[0], potential_collections=config.data.potential_collections)
+                    if len(search_results) > 0:
+                        best_result: SearchResult = max(search_results, key=lambda r: ratio(r.name, movie.title))
+                        
+                        if best_result:
+                            metadata: Optional[Metadata] = scraper.fetch_metadata(search_result=search_results[0], potential_collections=config.data.potential_collections)
 
-                        if metadata:
-                            if metadata.poster_url:
-                                poster_file_name = get_poster_from_url(url=metadata.poster_url)
-                            else: 
-                                poster_file_name = movie.poster_file_name
-                                
-                            async with aiosqlite.connect(DB_PATH) as db:
-                                await db.execute("UPDATE movies SET title = ?, poster_file_name = ?, metadata_last_updated = unixepoch() WHERE id = ?", (metadata.movie_title, poster_file_name, movie.id))
-                                await db.commit()
-                                
-                                movie.title = metadata.movie_title or movie.title
-                                movie.poster_file_name = poster_file_name
+                            if metadata:
+                                if metadata.poster_url:
+                                    poster_file_name = get_poster_from_url(url=metadata.poster_url)
+                                else: 
+                                    poster_file_name = movie.poster_file_name
+                                    
+                                async with aiosqlite.connect(DB_PATH) as db:
+                                    await db.execute("UPDATE movies SET title = ?, poster_file_name = ?, metadata_last_updated = unixepoch() WHERE id = ?", (metadata.movie_title, poster_file_name, movie.id))
+                                    await db.commit()
+                                    
+                                    movie.title = metadata.movie_title or movie.title
+                                    movie.poster_file_name = poster_file_name
 
-                            for person_metadata in metadata.people:
-                                await add_person_to_movie(person_metadata=person_metadata, movie=movie)
+                                for person_metadata in metadata.people:
+                                    await add_person_to_movie(person_metadata=person_metadata, movie=movie)
 
-                            for collection in metadata.collections:
-                                await add_collection_to_movie(collection_data=collection, movie=movie)
+                                for collection in metadata.collections:
+                                    await add_collection_to_movie(collection_data=collection, movie=movie)
+            except Exception:
+                log.exception("Unable to us scaper")
                             
     if movie.poster_file_name is None and movie.length_in_seconds:
         try:

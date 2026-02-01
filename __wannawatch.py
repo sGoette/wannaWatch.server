@@ -16,11 +16,17 @@ class PersonMetadata(BaseModel):
     name: str
     poster_url: Optional[str] = None
 
+class CollectionData(BaseModel):
+    title: str
+    poster_file_name: Optional[str] = None
+    poster_folder: Optional[Path] = None
+    poster_url: Optional[str] = None
+
 class Metadata(BaseModel):
     movie_title: Optional[str] = None
     genres: list[str] = []
     tags: list[str] = []
-    collections: list[str] = []
+    collections: list[CollectionData] = []
     poster_url: Optional[str] = None
     people: list[PersonMetadata] = []
 
