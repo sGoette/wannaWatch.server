@@ -1,4 +1,5 @@
 import aiosqlite
+import random
 from app.config import DB_PATH
 
 async def get_db():
@@ -19,13 +20,16 @@ CREATE TABLE IF NOT EXISTS settings (
     format TEXT NOT NULL
 )
 """)
+    
     await db.execute("""
 INSERT INTO settings
 ( key, value, format )
 VALUES
-( 'MEDIA_ROOT_FOLDER', '', 'folder' )
+( 'MEDIA_ROOT_FOLDER', '', 'folder' ),
+( 'SERVER_NAME', ?, 'text' )
 ON CONFLICT(key) DO NOTHING
-""")
+""", (f"WannaWatch Server {random.randint(1000, 9999)}",))
+    
     await db.execute("""
 CREATE TABLE IF NOT EXISTS libraries (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -33,6 +37,7 @@ CREATE TABLE IF NOT EXISTS libraries (
     media_folder TEXT NOT NULL UNIQUE
 )
 """)
+    
     await db.execute("""
 CREATE TABLE IF NOT EXISTS movies (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -61,6 +66,7 @@ CREATE TABLE IF NOT EXISTS collections (
     library_id INTEGER NOT NULL REFERENCES libraries(id) ON DELETE CASCADE
 )
 """)
+    
     await db.execute("""
 CREATE TABLE IF NOT EXISTS movies__collections (
     movie_id INTEGER NOT NULL REFERENCES movies(id) ON DELETE CASCADE,
@@ -78,6 +84,7 @@ CREATE TABLE IF NOT EXISTS people (
     library_id INTEGER NOT NULL REFERENCES libraries(id) ON DELETE CASCADE
 )
 """)
+    
     await db.execute("""
 CREATE TABLE IF NOT EXISTS movies__people (
     movie_id INTEGER NOT NULL REFERENCES movies(id) ON DELETE CASCADE,

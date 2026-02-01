@@ -46,18 +46,16 @@ async def lifespan(api: FastAPI):
     log.info("Scanner worker started ✅")
 
     zeroconf = AsyncZeroconf()
-    info = build_service_info()
+    info = await build_service_info()
     app.state.zeroconf = zeroconf
     app.state.service_info = info
 
     await zeroconf.async_register_service(info)
-    print("✅ Bonjour advertised")
     
     yield
 
     await zeroconf.async_unregister_service(info)
     await zeroconf.async_close()
-    print("🛑 Bonjour service stopped")
 
 app = FastAPI(title="WannaWatch.server", lifespan=lifespan)
 

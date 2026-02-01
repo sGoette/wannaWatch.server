@@ -1,8 +1,8 @@
 import socket
 from zeroconf import ServiceInfo
+import re
 
-SERVICE_TYPE = "_wannawatch._tcp.local."
-SERVICE_NAME = "WannaWatch Server 6969._wannawatch._tcp.local." #WannaWatchServer is the name shown. TODO: Set this to the server name, when it's stored in the DB
+from app.config import GET_SERVER_NAME
 
 def _local_ip() -> str:
     """
@@ -17,7 +17,13 @@ def _local_ip() -> str:
         s.close()
 
 
-def build_service_info() -> ServiceInfo:
+async def build_service_info() -> ServiceInfo:
+    SERVICE_TYPE = "_wannawatch._tcp.local."
+    SERVER_NAME = await GET_SERVER_NAME()
+
+    SERVICE_NAME = f"{SERVER_NAME}.{SERVICE_TYPE}"
+    SERVICE_ADDRESS = re.sub(r'\W+', '_', SERVER_NAME).lower()
+
     host_ip = _local_ip()
     # TXT records (bytes). Put anything the client needs here.
     props = {
@@ -31,5 +37,5 @@ def build_service_info() -> ServiceInfo:
         addresses=[socket.inet_aton(host_ip)],
         port=4000,
         properties=props,
-        server="wannawatch_server_6969.local.",  # can be any stable hostname; not strictly required TODO: Set this to something individual so people can have more than one server connected. 
+        server=f"{SERVICE_ADDRESS}.local."
     )

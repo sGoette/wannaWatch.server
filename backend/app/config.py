@@ -21,7 +21,18 @@ async def GET_MEDIA_ROOT_FOLDER() -> str:
         if MEDIA_ROOT_FOLDER:
             return str(MEDIA_ROOT_FOLDER[0])
         
-        else: exit(1)
+        exit(1)
+
+async def GET_SERVER_NAME() -> str:
+    async with aiosqlite.connect(DB_PATH) as db:
+        db.row_factory = aiosqlite.Row
+        async with db.execute("SELECT value FROM settings WHERE key = 'SERVER_NAME'") as cursor:
+            SERVER_NAME = await cursor.fetchone()
+
+            if SERVER_NAME:
+                return str(SERVER_NAME[0])
+            
+            exit(1)
 
 COLLECTION_POSTER_CANDIDATE_NAMES = ['folder' 'cover', 'poster', 'thumb', 'thumbnail', 'collection']
 
