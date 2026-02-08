@@ -4,6 +4,9 @@ from app.config import DB_PATH, GET_MEDIA_ROOT_FOLDER, POSTER_DIR
 from app.models.movie import Movie
 from app.models.collection import Collection
 
+from app.api.websocket_manager import ws_manager
+from app.models.notification import Notification, NOTIFICATION_TYPE
+
 import logging
 log = logging.getLogger(__name__)
 
@@ -56,6 +59,8 @@ async def cleanup_orphaned_movies ():
                         await db.execute("DELETE FROM movies WHERE id = ?", (movie.id,))
                         await db.commit()
 
+        await ws_manager.broadcast(Notification(type=NOTIFICATION_TYPE.MOVIES_UPDATED))
+
 async def cleanup_orphaned_collections ():
     async with aiosqlite.connect(DB_PATH) as db:
         db.row_factory = aiosqlite.Row
@@ -71,3 +76,5 @@ async def cleanup_orphaned_collections ():
                 if movie__collection_row is None:
                     await db.execute("DELETE FROM collections WHERE id = ?", (collection.id,))
                     await db.commit()
+
+        await ws_manager.broadcast(Notification(type=NOTIFICATION_TYPE.COLLECTIONS_UPDATED))

@@ -6,6 +6,9 @@ from app.models.library import Library
 from app.scanner.movie import process_movie
 from app.scanner.metadata import fetch_movie_metadata
 
+from app.api.websocket_manager import ws_manager
+from app.models.notification import Notification, NOTIFICATION_TYPE
+
 import logging
 log = logging.getLogger(__name__)
 
@@ -28,3 +31,5 @@ async def scan_library(library: Library, ignore_existing_metadata: bool):
 
             if movie and (movie.metadata_last_updated is None or ignore_existing_metadata is True):
                 await fetch_movie_metadata(movie=movie, absolute_path=absolte_file_path) #separate scanning and updating metadata. fist scan all files, then fetch the metadata
+    
+    await ws_manager.broadcast(Notification(type=NOTIFICATION_TYPE.LIBRARIES_UPDATED))

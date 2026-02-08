@@ -28,7 +28,7 @@ VALUES
 ( 'MEDIA_ROOT_FOLDER', '', 'folder' ),
 ( 'SERVER_NAME', ?, 'text' )
 ON CONFLICT(key) DO NOTHING
-""", (f"WannaWatch Server {random.randint(1000, 9999)}",))
+""", (f"Pinea Server {random.randint(1000, 9999)}",))
     
     await db.execute("""
 CREATE TABLE IF NOT EXISTS libraries (
@@ -52,9 +52,7 @@ CREATE TABLE IF NOT EXISTS movies (
     library_id INTEGER NOT NULL REFERENCES libraries(id) ON DELETE CASCADE,
     metadata_last_updated INTEGER,
     is_extra_of_movie_id INTEGER REFERENCES movies(id),
-    extra_type TEXT,
-    is_part_of_movie_id INTEGER REFERENCES movies(id),
-    part_number INTEGER
+    extra_type TEXT
 )
 """)
 

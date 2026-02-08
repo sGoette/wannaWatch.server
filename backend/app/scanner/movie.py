@@ -10,12 +10,16 @@ from app.config import DB_PATH, GET_MEDIA_ROOT_FOLDER
 from app.scanner.media import get_video_file_metadata
 from app.models.movie import Movie
 
+from app.api.websocket_manager import ws_manager
+from app.models.notification import Notification, NOTIFICATION_TYPE
+
 async def process_movie(absolute_file_path: Path, library_id: int) -> Optional[Movie]:
     MEDIA_ROOT_FOLDER = await GET_MEDIA_ROOT_FOLDER()
     relative_path = os.path.relpath(absolute_file_path, MEDIA_ROOT_FOLDER)
 
     async with aiosqlite.connect(DB_PATH) as db:
         db.row_factory = aiosqlite.Row
+        log.info(relative_path)
         async with db.execute("SELECT * FROM movies WHERE file_location = ? AND library_id = ?", (relative_path, library_id)) as cursor:
             existing_movie_row = await cursor.fetchone()
 
@@ -62,6 +66,7 @@ VALUES (?, ?, ?, ?, ?, ?, ?, ?)
             async with db.execute("SELECT * FROM movies WHERE id = ?", (new_movie_id,)) as select_cursor:
                 movie_row = await select_cursor.fetchone()
                 if movie_row:
+                    await ws_manager.broadcast(Notification(type=NOTIFICATION_TYPE.MOVIES_UPDATED))
                     return Movie(**movie_row)
         else:
             return None

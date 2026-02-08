@@ -21,6 +21,9 @@ from app.scanner.metadata_functions.add_person_to_movie import add_person_to_mov
 from app.scanner.metadata_functions.get_extra_type import get_extra_type
 from app.scanner.metadata_functions.get_main_movie_of_extra import get_main_movie_of_extra
 
+from app.api.websocket_manager import ws_manager
+from app.models.notification import Notification, NOTIFICATION_TYPE
+
 async def fetch_movie_metadata(movie: Movie, absolute_path: Path):
     extra_type, main_movie_file_name = get_extra_type(absolute_path)
     if extra_type and main_movie_file_name:
@@ -29,7 +32,7 @@ async def fetch_movie_metadata(movie: Movie, absolute_path: Path):
             async with aiosqlite.connect(DB_PATH) as db:
                 await db.execute("UPDATE movies SET is_extra_of_movie_id = ?, extra_type = ? WHERE id = ?", (main_movie.id, extra_type, movie.id))
                 await db.commit()
-
+            
     configs = await find_folder_collection_config(absolute_path)
 
     for config in configs:
@@ -88,3 +91,5 @@ async def fetch_movie_metadata(movie: Movie, absolute_path: Path):
                 await db.commit()
         except Exception:
             log.exception(f"[Scanner] Failed to generate poster for {absolute_path}")
+
+    await ws_manager.broadcast(Notification(type=NOTIFICATION_TYPE.MOVIES_UPDATED))

@@ -1,12 +1,14 @@
-import React, { useEffect, useState } from "react"
+import React, { useContext, useEffect, useState } from "react"
 import MovieCard from "./MovieCard"
 import type { Movie } from "../../types/Movie"
 import axios from "axios"
+import { WebSocketContext } from "./App"
 
 const MovieList = (props: { currentLibraryId: number | null}) => {
     const [ movies, setMovies ] = useState<Movie[]>([])
+    const websocketMessage = useContext(WebSocketContext)
 
-    const loadMovies = () => {
+    const fetchMovies = () => {
         if(props.currentLibraryId) {
             axios.get(`/api/movies/${props.currentLibraryId}`)
             .then(response => {
@@ -18,8 +20,17 @@ const MovieList = (props: { currentLibraryId: number | null}) => {
     }
 
     useEffect(() => {
-        loadMovies()
+        fetchMovies()
     }, [props.currentLibraryId])
+
+    useEffect(() => {
+            console.log(websocketMessage.message)
+            switch(websocketMessage.message) {
+                case "movies-updated": 
+                    fetchMovies()
+                    break
+            }
+        }, [websocketMessage])
 
     return (
         <>

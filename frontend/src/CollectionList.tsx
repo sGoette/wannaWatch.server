@@ -1,16 +1,19 @@
-import React, { useEffect, useState } from "react"
+import React, { useContext, useEffect, useState } from "react"
 import type { Collection } from "../../types/Collection"
 import axios from "axios"
 import CollectionCard from "./CollectionCard"
 import type { Movie } from "../../types/Movie"
 import MovieCard from "./MovieCard"
+import { WebSocketContext } from "./App"
 
 const CollectionList = (props: { currentLibraryId: number | null}) => {
     const [ collections, setCollections ] = useState<Collection[]>([])
     const [ currentCollection, setCurrentCollection ] = useState<Collection | null>(null)
     const [ movies, setMovies ] = useState<Movie[]>([])
 
-    const loadCollections = () => {
+    const websocketMessage = useContext(WebSocketContext)
+
+    const fetchCollections = () => {
         if(props.currentLibraryId) {
             axios.get(`/api/collections/${props.currentLibraryId}`)
             .then(response => {
@@ -18,10 +21,13 @@ const CollectionList = (props: { currentLibraryId: number | null}) => {
                     setCollections(response.data)
                 }
             })
+        } else {
+            setCollections([])
+            setCurrentCollection(null)
         }
     }
 
-    const loadMovies = () => {
+    const fetchMovies = () => {
         if(currentCollection) {
             axios.get(`/api/movies/collection/${currentCollection.id}`)
             .then(response => {
@@ -33,14 +39,26 @@ const CollectionList = (props: { currentLibraryId: number | null}) => {
     }
 
     useEffect(() => {
-        loadCollections()
+        fetchCollections()
     }, [props.currentLibraryId])
 
     useEffect(() => {
         if(currentCollection) {
-            loadMovies()
+            fetchMovies()
         }
     }, [currentCollection])
+
+    useEffect(() => {
+            console.log(websocketMessage.message)
+            switch(websocketMessage.message) {
+                case "movies-updated":
+                    fetchMovies()
+                    break
+                case "collections-updated":
+                    fetchCollections()
+                    break
+            }
+        }, [websocketMessage])
 
     return (
         <>

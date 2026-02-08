@@ -21,8 +21,6 @@ class Movie(BaseModel):
     metadata_last_updated: Optional[int]
     is_extra_of_movie_id: Optional[int]
     extra_type: Optional[MOVIE_EXTRA_TYPE]
-    is_part_of_movie_id: Optional[int]
-    part_number: Optional[int]
 
 # Plex Extra Types
 # -deleted

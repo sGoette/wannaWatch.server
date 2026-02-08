@@ -1,7 +1,5 @@
 import React, { useContext, useEffect, useState } from "react"
-import type { Movie } from "../../types/Movie"
 import axios from "axios"
-import MovieCard from "./MovieCard"
 import type { Library } from "../../types/Library"
 import './MovieOverview.css'
 import { Menu } from "./Menu"
@@ -17,34 +15,32 @@ enum LibraryDisplayMode {
 export const MovieOverview = () => {
     const [ libraries, setLibraries ] = useState<Library[]>([])
     const [ currentLibraryId, setCurrentLibraryId ] = useState<number | null>(null)
-    const [ movies, setMovies ] = useState<Movie[]>([])
     const [ libraryDisplayMode, setLibraryDisplayMode ] = useState<LibraryDisplayMode>(LibraryDisplayMode.COLLECTIONS)
 
     const websocketMessage = useContext(WebSocketContext)
 
-    const loadLibraries = () => {
+    const fetchLibraries = () => {
         axios.get('/api/libraries')
         .then(response => {
             if (response.status === 200) {
                 let newLibraries = response.data as Library[]
                 setLibraries(newLibraries)
-                setCurrentLibraryId(newLibraries[0]?.id ?? null)
+                if(!newLibraries.some(library => library.id === currentLibraryId)) {
+                    setCurrentLibraryId(newLibraries[0]?.id ?? null)
+                }
             }
         })
     }
 
     useEffect(() => {
-        loadLibraries()
+        fetchLibraries()
     }, [])
 
     useEffect(() => {
         console.log(websocketMessage.message)
         switch(websocketMessage.message) {
             case "libraries-updated": 
-                loadLibraries()
-                break
-
-            case "movies_updated": 
+                fetchLibraries()
                 break
         }
     }, [websocketMessage])

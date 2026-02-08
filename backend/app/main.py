@@ -1,6 +1,6 @@
 from app.logging_setup import setup_logging
 from app.config import LOG_FILE
-setup_logging(log_path=LOG_FILE, level='WARNING')
+setup_logging(log_path=LOG_FILE, level='INFO')
 
 from fastapi import FastAPI, Request
 from contextlib import asynccontextmanager
@@ -18,9 +18,8 @@ from app.api.libraries import router as libraries_router
 from app.api.person import router as person_router
 from app.api.poster import router as poster_router
 from app.api.filesystem import router as filesystem_router
-from app.api.scan import router as scan_router
 
-from app.api.test import router as scrape_router
+
 
 from app.db.database import init_db
 from app.scanner.worker import ScannerWorker
@@ -69,8 +68,14 @@ app.include_router(libraries_router)
 app.include_router(person_router)
 app.include_router(poster_router)
 app.include_router(filesystem_router)
+
+from app.api.scan import router as scan_router
 app.include_router(scan_router)
 
+from app.api.websocket import router as websocket_router
+app.include_router(websocket_router)
+
+from app.api.test import router as scrape_router
 app.include_router(scrape_router)
 
 if FRONTEND_DIR.exists():
@@ -85,7 +90,7 @@ if FRONTEND_DIR.exists():
     
     @app.get("/{full_path:path}", include_in_schema=False)
     async def spa_fallback(request: Request, full_path: str):
-        if request.url.path.startswith("/api/"):
+        if request.url.path.startswith("/api/") or request.url.path.startswith("/ws/"):
             return {"detail": "Not Found"}
         
         candidate = (FRONTEND_DIR / full_path).resolve()

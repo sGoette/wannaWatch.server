@@ -3,6 +3,8 @@ import aiosqlite
 from app.scanner.jobs import ScanJob
 from app.config import DB_PATH
 from app.models.library import Library, LibraryCreate
+from app.models.notification import Notification, NOTIFICATION_TYPE
+from app.api.websocket_manager import ws_manager
 
 router = APIRouter(prefix="/api/library")
 
@@ -31,6 +33,7 @@ async def create_library(request: Request, library: LibraryCreate):
     scanner.submit(ScanJob(library_id=library_id))
     # Return the created library
     if library_id:
+        await ws_manager.broadcast(Notification(type=NOTIFICATION_TYPE.LIBRARIES_UPDATED))
         return Library(
             id=library_id,
             name=library.name,
@@ -44,6 +47,7 @@ async def update_library(library: Library):
         await db.commit()
 
     #Return the updated library
+    await ws_manager.broadcast(Notification(type=NOTIFICATION_TYPE.LIBRARIES_UPDATED))
     return library
 
 @router.delete("/{library_id}")
@@ -61,5 +65,5 @@ async def delete_library(request: Request,library_id: int):
     
     scanner = request.app.state.scanner
     scanner.submit(ScanJob(library_id=library_id))
-    
+    await ws_manager.broadcast(Notification(type=NOTIFICATION_TYPE.LIBRARIES_UPDATED))
     return {"msg": "Library deleted"}

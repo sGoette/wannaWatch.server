@@ -4,6 +4,7 @@ from pathlib import Path
 BASE_DIR = Path(__file__).parent.parent.parent.parent.resolve() #wannawatch.server folder
 POSTER_DIR = BASE_DIR / "data/posters"
 DB_PATH = BASE_DIR / "data/db/database.sqlite"
+HLS_ROOT = BASE_DIR / "data/tmp/hls"
 
 BACKEND_DIR = Path(__file__).resolve().parents[1]      # backend/app -> backend
 REPO_ROOT   = BACKEND_DIR.parent                       # backend -> repo root

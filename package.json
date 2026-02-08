@@ -7,7 +7,7 @@
   "scripts": {
     "dev:frontend": "webpack serve --mode development",
     "dev:backendX": "cd backend && source .venv/bin/activate && uvicorn app.main:app --reload --host 0.0.0.0 --port 4000",
-    "dev:backend": "PYTHONDONTWRITEBYTECODE=1 backend/.venv/bin/python -m uvicorn app.main:app --app-dir backend --reload --host 0.0.0.0 --port 4000",
+    "dev:backend": "PYTHONDONTWRITEBYTECODE=1 .venv/bin/python -m uvicorn app.main:app --app-dir backend --reload --host 0.0.0.0 --port 4000",
     "dev": "concurrently -n FRONTEND,BACKEND -c blue,green \"npm run dev:frontend\" \"npm run dev:backend\"",
     "typecheck": "tsc --noEmit",
     "build": "cd frontend && webpack"
@@ -24,6 +24,7 @@
     "@mui/material": "^7.3.6",
     "axios": "^1.13.2",
     "fastify": "^5.6.2",
+    "hls.js": "^1.6.15",
     "mime-types": "^3.0.2",
     "p-queue": "^9.0.1",
     "react": "^19.2.3",

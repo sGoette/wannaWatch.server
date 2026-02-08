@@ -10,12 +10,13 @@ const SOCKET_URL = __WSURL__
 
 const App = () => {
   const [ websocketMessage, setWebsocketMessage ] = useState<{timestamp: number, message: string}>({timestamp: Date.now(), message: ""})
-  const { sendMessage, lastMessage, readyState } = useWebSocket(SOCKET_URL)
+  const { sendMessage, lastMessage, readyState } = useWebSocket(SOCKET_URL, { retryOnError: true, shouldReconnect: (closeEvent) => { return true } })
 
   useEffect(() => {
     if(lastMessage !== null) {
-      const newMessage = JSON.parse(lastMessage.data) as { type: string}
+      const newMessage = JSON.parse(lastMessage.data) as { type: string }
       setWebsocketMessage({ timestamp: Date.now(), message: newMessage.type })
+      console.log(newMessage)
     }
   }, [lastMessage])
   

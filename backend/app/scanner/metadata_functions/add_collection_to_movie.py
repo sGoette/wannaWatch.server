@@ -10,6 +10,9 @@ from app.scanner.metadata_functions.get_poster_from_folder import get_poster_fro
 from app.models.collection import CollectionData
 from app.scanner.metadata_functions.get_poster_from_url import get_poster_from_url
 
+from app.api.websocket_manager import ws_manager
+from app.models.notification import Notification, NOTIFICATION_TYPE
+
 async def add_collection_to_movie(collection_data: CollectionData, movie: Movie):
     async with aiosqlite.connect(DB_PATH) as db:
         db.row_factory = aiosqlite.Row
@@ -21,6 +24,7 @@ async def add_collection_to_movie(collection_data: CollectionData, movie: Movie)
             async with db.execute("INSERT INTO collections (title, library_id) VALUES (?, ?)", (collection_data.title, movie.library_id)) as insert_cursor:
                 collection_id = insert_cursor.lastrowid
                 await db.commit()
+                await ws_manager.broadcast(Notification(type=NOTIFICATION_TYPE.COLLECTIONS_UPDATED))
 
             async with db.execute("SELECT * FROM collections WHERE id = ?", (collection_id,)) as select_cursor2:
                 collection_row = await select_cursor2.fetchone()
@@ -49,3 +53,6 @@ async def add_collection_to_movie(collection_data: CollectionData, movie: Movie)
 
                 await db.execute("UPDATE collections SET poster_file_name = ? WHERE id = ?", (poster_file_name, collection.id))
                 await db.commit()
+
+            await ws_manager.broadcast(Notification(type=NOTIFICATION_TYPE.MOVIES_UPDATED))
+            await ws_manager.broadcast(Notification(type=NOTIFICATION_TYPE.COLLECTIONS_UPDATED))
